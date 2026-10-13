@@ -1,1 +1,24 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Emirates Aircraft Explorer</title><link rel="stylesheet" href="style.css"></head><body><header><h1>Aircraft Explorer</h1><p>Interactive educational 3D aircraft concept • Emirates-inspired</p><div class="controls"><button id="outside">Exterior</button><button id="inside">Interior cutaway</button><button id="reset">Reset view</button></div></header><main id="scene" aria-label="Interactive 3D aircraft"></main><aside id="info" role="status">Hover over a highlighted aircraft part to learn about it. Drag to rotate; scroll to zoom.</aside><footer>Original simplified educational model; not an official Emirates model or accurate cabin blueprint.</footer><script type="module" src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emirates Aircraft Explorer</title>
+  <link rel="stylesheet" href="style.css">
+
+  <script type="importmap">
+    {
+     "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1> Aircraft Explorer</h1>
+    <p> Interactive educational 3D aircraft concept . Emirates-Inspired</p>
+    <div class="controls">
+      <button id="outside">Exteriror</button>
+      <button id="inside">interior cutaway</button>
