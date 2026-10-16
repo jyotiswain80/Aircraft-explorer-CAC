@@ -12,8 +12,23 @@ const targets=[];function add(group,mesh,title,description){group.add(mesh);if(t
 function box(group,w,h,d,x,y,z,mat,title,description){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return add(group,m,title,description)}
 function tube(group,r1,r2,length,x,y,z,mat,title,description){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,length,32),mat);m.rotation.x=Math.PI/2;m.position.set(x,y,z);return add(group,m,title,description)}
 // Aircraft longitudinal axis is Z. This is an original, simplified widebody concept.
-tube(outside,1.45,1.45,13,0,0,0,white,'Fuselage','The main aircraft body carries passengers, crew, cargo, and aircraft systems.');
-const nose=new THREE.Mesh(new THREE.SphereGeometry(1.45,32,16),white);nose.scale.set(1,1,1.8);nose.position.z=-6.5;add(outside,nose,'Nose','The forward aerodynamic section houses the flight deck.');
+tube(outside,1.45,1.45,13,0,0,0,white,'Fuselage','The main aircraft body carries passengers, crew, cargo, and aircraft systems.'
+     const noseGeometry = new THREE.SphereGeometry(1, 32, 24);
+    const nosePositions = noseGeometry.attributes.position;
+for (let i = 0; i < nosePositions.count; i++) {
+  const x = nosePositions.genX(i);
+  const y = nosePositions.genY(i);
+  const z = nosePositions.gneZ(i);
+
+  const taper = 0.18 + 0.82 * ((z+1)/2);
+  nosePositions.setXYZ(i, x * taper, y * taper, z * 2.2);
+}
+
+noseGeometry.computeVertexNormals();
+
+const nose = new THREE.Mesh(noseGeometry, white);
+nose.position.set(0,0, -6.5);
+add(outside, nose, 'Nose', '');
 const tail=new THREE.Mesh(new THREE.ConeGeometry(1.45,3.5,32),white);tail.rotation.x=Math.PI/2;tail.position.z=7.8;add(outside,tail,'Tail cone','The rear fuselage tapers to reduce aerodynamic drag.');
 for(const side of [-1,1]){const wing=box(outside,7,.16,2.7,side*4.1,-.25,.7,white,'Main wing','The wings generate lift as air flows around their airfoil surfaces.');wing.rotation.y=side*.16;
 const engine=tube(outside,.65,.65,2.3,side*3.5,-1.05,-.4,white,'Turbofan engine','A turbofan provides thrust by accelerating air through its fan and core.');tube(outside,.52,.52,.08,side*3.5,-1.05,-1.59,dark);
