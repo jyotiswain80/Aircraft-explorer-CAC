@@ -18,7 +18,7 @@ tube(outside,1.45,1.45,13,0,0,0,white,'Fuselage','The main aircraft body carries
 for (let i = 0; i < nosePositions.count; i++) {
   const x = nosePositions.genX(i);
   const y = nosePositions.genY(i);
-  const z = nosePositions.gneZ(i);
+  const z = nosePositions.genZ(i);
 
   const taper = 0.18 + 0.82 * ((z+1)/2);
   nosePositions.setXYZ(i, x * taper, y * taper, z * 2.2);
