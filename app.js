@@ -12,13 +12,13 @@ const targets=[];function add(group,mesh,title,description){group.add(mesh);if(t
 function box(group,w,h,d,x,y,z,mat,title,description){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return add(group,m,title,description)}
 function tube(group,r1,r2,length,x,y,z,mat,title,description){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,length,32),mat);m.rotation.x=Math.PI/2;m.position.set(x,y,z);return add(group,m,title,description)}
 // Aircraft longitudinal axis is Z. This is an original, simplified widebody concept.
-tube(outside,1.45,1.45,13,0,0,0,white,'Fuselage','The main aircraft body carries passengers, crew, cargo, and aircraft systems.'
+tube(outside,1.45,1.45,13,0,0,0,white,'Fuselage','The main aircraft body carries passengers, crew, cargo, and aircraft systems.');
      const noseGeometry = new THREE.SphereGeometry(1, 32, 24);
     const nosePositions = noseGeometry.attributes.position;
 for (let i = 0; i < nosePositions.count; i++) {
-  const x = nosePositions.genX(i);
-  const y = nosePositions.genY(i);
-  const z = nosePositions.genZ(i);
+  const x = nosePositions.getX(i);
+  const y = nosePositions.getY(i);
+  const z = nosePositions.getZ(i);
 
   const taper = 0.18 + 0.82 * ((z+1)/2);
   nosePositions.setXYZ(i, x * taper, y * taper, z * 2.2);
