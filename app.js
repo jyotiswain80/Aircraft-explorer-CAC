@@ -109,7 +109,7 @@ function createWings() {
 function createEngines() {
  for(const s of [-1,1]) { const x=s*3.0, z=-1.4;
   // pylon is ahead of wing mid-chord and carries the nacelle below it
-  box(outside,[.78,1.03,.42],[x,.05,z],white,'pylon',[0,0,-.18]);
+  box(outside,[.78,1.03,.42],[x,.05,z],white,'pylon',[0,0,-.18*s]);
   const nac=cylinder(outside,.72,.72,2.55,[x,-.94,z-.05],white,'engine'); nac.scale.set(1,1,.9);
   // visible front intake, fan hub and blades
   cylinder(outside,.57,.57,.08,[x,-.94,z-1.22],dark,'fan');
@@ -126,9 +126,9 @@ function createEngines() {
 function createTail() {
  // Tailplanes span across the aft fuselage, swept toward the rear.
  for(const s of [-1,1]) { const h=box(outside,[4.1,.18,1.15],[1.85,.18,6.15],white,'tailplane',[0,0,-.12]); if(s<0){h.position.x=-1.85;h.rotation.z=.12;} }
- const fin=box(outside,[.2,3.45,3.15],[0,1.65,5.6],white,'fin',[.12,0,-.13]);
+ const fin=box(outside,[.2,3.45,3.15],[0,1.65,5.6],white,'fin',[.12,0,0]);
  // red fin-tip panel accent, no marks or lettering
- box(outside,[.22,.34,1.0],[0,3.25,6.35],red,'fin',[.12,0,-.13]);
+ box(outside,[.22,.34,1.0],[0,3.25,6.35],red,'fin',[.12,0,0]);
  const apu=cylinder(outside,.25,.32,.95,[0,.15,7.15],dark,'apu');
  const cone=mesh(outside,new THREE.ConeGeometry(.36,1.1,28),white,[0,0,7.55],'tailcone'); cone.rotation.x=-Math.PI/2;
 }
