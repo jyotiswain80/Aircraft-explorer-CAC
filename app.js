@@ -82,22 +82,26 @@ function createFuselage() {
  box(outside,[.055,.025,8.8],[0,-1.065,-.1],panel,'fuselage');
 }
 function createWings() {
- // Swept planform, extruded thinly through the vertical axis.
- const shape=new THREE.Shape(); shape.moveTo(.8,-1.0); shape.lineTo(11.6,2.4); shape.lineTo(11.85,3.0); shape.lineTo(4.2,-2.0); shape.lineTo(.8,-1.0);
- const geo=new THREE.ExtrudeGeometry(shape,{depth:.22,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.08,bevelThickness:.06}); geo.rotateX(Math.PI/2);
- // After rotation, shape's local y maps to Z and extrusion to negative Y.
- for(const side of [-1,1]) { const g=geo.clone(); if(side<0)g.scale(side,1,1); const wing=mesh(outside,g,white,[0,.02,0],'wing');
-  // aileron/flap strip, fuel tank volume and winglet
-  const flap=box(outside,[7.1,.12,.48],[4.9,-.16,1.08],panel,'flaps',[0,0,-.1]); if(side<0)flap.position.z=-1.08;
-  const tank=box(outside,[6.2,.11,.48],[4.6,.13,.12],blue,'fuel',[0,0,-.1]); if(side<0)tank.position.z=-.12;
-  const wl=box(outside,[.42,1.05,.72],[11.35,.55,2.35],white,'winglet',[0,0,-.12]); if(side<0){wl.position.z=-2.35;wl.rotation.z=.12;}
-  // hydraulic line routed along the wing
-  const pts=side>0?[[1,-.23,.65],[3,-.23,.9],[6,-.23,1.7],[10.4,-.2,2.55]]:[[1,-.23,-.65],[3,-.23,-.9],[6,-.23,-1.7],[10.4,-.2,-2.55]];
-  lineTube(outside,pts,.035,red,'hydraulics');
- }
+// Swept planform drawn per side so the left and right wings mirror exactly.
+  const pts = [[1.0,-1.6],[11.6,1.0],[11.6,1.9],[1.0,0.2]];
+  for (const side of [-1,1]) {
+    const list = side > 0 ? pts : pts.slice().reverse().map(p => [-p[0], p[1]]);
+    const shape = new THREE.Shape();
+    shape.moveTo(list[0][0], list[0][1]);
+    for (let i = 1; i < list.length; i++) shape.lineTo(list[i][0], list[i][1]);
+    shape.lineTo(list[0][0], list[0][1]);
+    const g = new THREE.ExtrudeGeometry(shape, {depth:.22, bevelEnabled:true, bevelSegments:2, steps:1, bevelSize:.08, bevelThickness:.06});
+    g.rotateX(Math.PI/2);
+    mesh(outside, g, white, [0,.02,0], 'wing');
+    box(outside, [6.5,.12,.5], [5.5*side,-.16,.9], panel, 'flaps', [0,0,-.1]);
+    box(outside, [5.6,.11,.5], [5.2*side,.13,.2], blue, 'fuel', [0,0,-.1]);
+    const wl = box(outside, [.4,1.05,.7], [11.5*side,.55,1.45], white, 'winglet', [0,0,-.12]);
+    wl.rotation.z = -.12*side;
+    lineTube(outside, [[1.5*side,-.23,-1.0],[4*side,-.23,-.1],[7*side,-.23,.7],[10.4*side,-.2,1.2]], .035, red, 'hydraulics');
+  }
 }
 function createEngines() {
- for(const s of [-1,1]) { const x=s*3.05, z=.6;
+ for(const s of [-1,1]) { const x=s*3.05, z=-1.4;
   // pylon is ahead of wing mid-chord and carries the nacelle below it
   box(outside,[.78,1.03,.42],[x,.05,z],white,'pylon',[0,0,-.18]);
   const nac=cylinder(outside,.72,.72,2.55,[x,-.94,z-.05],white,'engine'); nac.scale.set(1,1,.9);
