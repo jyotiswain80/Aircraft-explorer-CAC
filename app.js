@@ -1,51 +1,184 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
-import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
-const mount=document.querySelector('#scene'), info=document.querySelector('#info');
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x83c9f5);
-const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,1000);camera.position.set(15,10,19);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);mount.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x688bb0,2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(10,20,15);scene.add(sun);
-const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=8;controls.maxDistance=55;
-const white=new THREE.MeshStandardMaterial({color:0xf4f6f8,metalness:.25,roughness:.5}),red=new THREE.MeshStandardMaterial({color:0xc71932}),dark=new THREE.MeshStandardMaterial({color:0x23465f}),glass=new THREE.MeshStandardMaterial({color:0x3e8bb3,transparent:true,opacity:.72}),gold=new THREE.MeshStandardMaterial({color:0xe8bb60}),seatMat=new THREE.MeshStandardMaterial({color:0x6e2635});
-const outside=new THREE.Group(),inside=new THREE.Group();scene.add(outside,inside);
-const targets=[];function add(group,mesh,title,description){group.add(mesh);if(title){mesh.userData={title,description};targets.push(mesh)}return mesh}
-function box(group,w,h,d,x,y,z,mat,title,description){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);return add(group,m,title,description)}
-function tube(group,r1,r2,length,x,y,z,mat,title,description){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,length,32),mat);m.rotation.x=Math.PI/2;m.position.set(x,y,z);return add(group,m,title,description)}
-// Aircraft longitudinal axis is Z. This is an original, simplified widebody concept.
-tube(outside,1.45,1.45,13,0,0,0,white,'Fuselage','The main aircraft body carries passengers, crew, cargo, and aircraft systems.');
-     const noseGeometry = new THREE.SphereGeometry(1, 32, 24);
-    const nosePositions = noseGeometry.attributes.position;
-for (let i = 0; i < nosePositions.count; i++) {
-  const x = nosePositions.getX(i);
-  const y = nosePositions.getY(i);
-  const z = nosePositions.getZ(i);
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-  const taper = 0.18 + 0.82 * ((z+1)/2);
-  nosePositions.setXYZ(i, x * taper, y * taper, z * 2.2);
+// Aircraft Explorer: all geometry is procedural so the project needs no assets.
+const sceneHost = document.querySelector('#scene');
+const info = document.querySelector('#info');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xdcecf6);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 250);
+const defaultCamera = new THREE.Vector3(19, 12, 20);
+camera.position.copy(defaultCamera);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+sceneHost.appendChild(renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.06; controls.minDistance = 9; controls.maxDistance = 55;
+controls.target.set(0, 0, 0);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x74889a, 2.1));
+const key = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(12, 20, 14); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 1.0); fill.position.set(-15, 5, -8); scene.add(fill);
+
+const PARTS = {
+ nose:{title:'Nose / radome',description:'The rounded nose fairing, called a radome, lets radio waves pass through to the weather radar. Its smooth shape reduces drag.'},
+ cockpit:{title:'Cockpit windshield / flight deck',description:'The reinforced windshield gives pilots a forward view, while the flight deck contains the controls and displays used to operate the aircraft.'},
+ fuselage:{title:'Fuselage',description:'The fuselage is the main body of the aircraft. It carries passengers, cargo, and systems while its pressurized shell maintains a comfortable cabin altitude.'},
+ windows:{title:'Cabin windows',description:'Passenger windows provide outside views and admit daylight. Their rounded shape helps distribute stress in the pressurized fuselage.'},
+ wing:{title:'Main wing',description:'The swept wings generate most of the lift. Their shape balances efficient cruise flight with controllability at lower speeds.'},
+ winglet:{title:'Winglet',description:'The upturned wingtip helps weaken the swirling vortices that form behind a wing, reducing some induced drag.'},
+ engine:{title:'Turbofan engine',description:'A turbofan draws in a large mass of air, accelerates it, and produces thrust. The fan supplies much of the thrust efficiently at typical airliner speeds.'},
+ pylon:{title:'Engine pylon',description:'The pylon attaches the engine to the wing and transfers thrust and other loads into the airframe. It also routes services between the engine and aircraft.'},
+ fan:{title:'Fan and exhaust',description:'The large front fan moves air into the engine core and around it. Hot core gases leave through the rear nozzle to contribute to thrust.'},
+ fin:{title:'Vertical stabilizer / rudder area',description:'The vertical tail helps keep the aircraft pointed into the airflow. Its movable rudder controls yaw, or side-to-side nose motion.'},
+ tailplane:{title:'Horizontal stabilizer',description:'The horizontal tail balances pitching forces. Its elevator or movable stabilizer helps control the aircraft nose-up and nose-down.'},
+ flaps:{title:'Wing flaps',description:'Flaps extend from the rear of the wing for takeoff and landing. They increase lift at lower speeds, with added drag.'},
+ fuel:{title:'Wing fuel tanks',description:'Fuel is commonly stored in sealed spaces within the wings. Keeping fuel near the wing structure helps manage loads as fuel is used.'},
+ apu:{title:'Auxiliary power unit (APU)',description:'The APU is a small turbine in the tail that can provide electrical power and compressed air on the ground, and may serve as a backup in flight.'},
+ avionics:{title:'Avionics bay',description:'Avionics are electronic systems for communication, navigation, monitoring, and flight management. This highlighted forward compartment is illustrative.'},
+ hydraulics:{title:'Hydraulic system',description:'Pressurized hydraulic fluid powers high-force equipment such as flight controls and landing gear. The colored lines here indicate representative routing.'},
+ electrical:{title:'Electrical system / generators',description:'Generators supply electrical power for aircraft systems. Power is distributed through protected circuits to instruments, lighting, and equipment.'},
+ ecs:{title:'Environmental control system',description:'The environmental control system conditions and circulates cabin air, helping regulate temperature and pressure.'},
+ cabin:{title:'Passenger cabin',description:'The passenger cabin contains seating and an aisle. In cutaway view, the floor, seats, flight deck, and rear service area are visible.'},
+ cargo:{title:'Cargo hold',description:'The space beneath the passenger floor carries baggage and freight in secured compartments.'},
+ nosegear:{title:'Nose landing gear',description:'The nose gear supports the forward fuselage on the ground and usually steers the aircraft during taxi.'},
+ maingear:{title:'Main landing gear',description:'The main gear carries most of the aircraft weight during landing and taxi. Its wheels and tires absorb substantial impact loads.'},
+ brakes:{title:'Wheel brakes',description:'Brakes slow the wheels after touchdown and during taxi. They work with other deceleration systems to help stop the aircraft.'},
+ tailcone:{title:'Tail cone',description:'The tail cone smoothly closes the aft fuselage and reduces aerodynamic drag around the tail.'}
+};
+const white = new THREE.MeshStandardMaterial({color:0xf4f6f5, metalness:.22, roughness:.48});
+const panel = new THREE.MeshStandardMaterial({color:0xcbd5dc, metalness:.25, roughness:.58});
+const red = new THREE.MeshStandardMaterial({color:0xb83a45, roughness:.45});
+const glass = new THREE.MeshStandardMaterial({color:0x183d55, metalness:.18, roughness:.22});
+const dark = new THREE.MeshStandardMaterial({color:0x263947, metalness:.35, roughness:.38});
+const gold = new THREE.MeshStandardMaterial({color:0xd2a84d, metalness:.55, roughness:.35});
+const blue = new THREE.MeshStandardMaterial({color:0x3f96a8, metalness:.15, roughness:.4, transparent:true, opacity:.48});
+const cabinMat = new THREE.MeshStandardMaterial({color:0xe8edf0, roughness:.8});
+const outside = new THREE.Group(), inside = new THREE.Group(); scene.add(outside, inside); inside.visible = false;
+const clickables = [];
+function register(mesh, id) { mesh.userData.partId=id; clickables.push(mesh); return mesh; }
+function mesh(group, geometry, material, pos, id, rot) { const m=new THREE.Mesh(geometry,material); m.position.set(...pos); if(rot)m.rotation.set(...rot); group.add(m); if(id)register(m,id); return m; }
+function box(group,size,pos,material,id,rot) { return mesh(group,new THREE.BoxGeometry(...size),material,pos,id,rot); }
+function cylinder(group,r1,r2,len,pos,material,id,axis='z') { const m=mesh(group,new THREE.CylinderGeometry(r1,r2,len,32,1,false),material,pos,id); if(axis==='z')m.rotation.x=Math.PI/2; else if(axis==='x')m.rotation.z=Math.PI/2; return m; }
+function lineTube(group, points, radius, material, id) { const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p))); return mesh(group,new THREE.TubeGeometry(curve,32,radius,8,false),material,id?[0,0,0]:[0,0,0],id); }
+function createFuselage() {
+ // Lathe profile is closed at both ends and gives the nose and tail a rounded taper.
+ const profile=[[-7.9,.03],[-7.75,.34],[-7.4,.68],[-6.9,.91],[-6.2,1.03],[-5.3,1.08],[4.9,1.08],[5.8,1.01],[6.5,.83],[7.1,.55],[7.65,.22],[7.8,.03]].map(([z,r])=>new THREE.Vector2(r,z));
+ const g=new THREE.LatheGeometry(profile,64); g.rotateX(Math.PI/2); // lathe axis Y becomes aircraft Z
+ mesh(outside,g,white,[0,0,0],'fuselage');
+ // radome overlay is subtly tinted and overlaps the front profile smoothly
+ const rad=mesh(outside,new THREE.SphereGeometry(1,32,24),white,[0,0,0],'nose');
+ rad.scale.set(.72,.72,1.48); rad.position.set(0,-.08,-7.05);
+ // cockpit glazing follows curved front surface via small angled individual panes
+ const paneGeo=new THREE.SphereGeometry(1,20,12);
+ for(const side of [-1,1]) for(let i=0;i<2;i++) { const p=mesh(outside,paneGeo,glass,[side*(.22+i*.27),.49,-6.65+i*.12],'cockpit'); p.scale.set(.23,.27,.15); p.rotation.x=-.25; p.rotation.z=side*.12; }
+ // simple highlighted avionics bay visible just behind the radome
+ const av=mesh(outside,new THREE.SphereGeometry(.28,20,14),gold,[0,-.38,-6.02],'avionics'); av.scale.set(1,.7,1.35);
+ // Window rows on both sides
+ for(const s of [-1,1]) for(let z=-4.9;z<=4.45;z+=.57) { const w=mesh(outside,new THREE.SphereGeometry(.105,12,10),glass,[s*1.035,.34,z],'windows'); w.scale.set(.25,.8,1); }
+ // fine belly service line and subtle red access marker
+ box(outside,[.055,.025,8.8],[0,-1.065,-.1],panel,'fuselage');
 }
+function createWings() {
+ // Swept planform, extruded thinly through the vertical axis.
+ const shape=new THREE.Shape(); shape.moveTo(.8,-1.0); shape.lineTo(11.6,2.4); shape.lineTo(11.85,3.0); shape.lineTo(4.2,-2.0); shape.lineTo(.8,-1.0);
+ const geo=new THREE.ExtrudeGeometry(shape,{depth:.22,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.08,bevelThickness:.06}); geo.rotateX(Math.PI/2);
+ // After rotation, shape's local y maps to Z and extrusion to negative Y.
+ for(const side of [-1,1]) { const g=geo.clone(); if(side<0)g.scale(1,1,-1); const wing=mesh(outside,g,white,[0,.02,0],'wing');
+  // aileron/flap strip, fuel tank volume and winglet
+  const flap=box(outside,[7.1,.12,.48],[4.9,-.16,1.08],panel,'flaps',[0,0,-.1]); if(side<0)flap.position.z=-1.08;
+  const tank=box(outside,[6.2,.11,.48],[4.6,.13,.12],blue,'fuel',[0,0,-.1]); if(side<0)tank.position.z=-.12;
+  const wl=box(outside,[.42,1.05,.72],[11.35,.55,2.35],white,'winglet',[0,0,-.12]); if(side<0){wl.position.z=-2.35;wl.rotation.z=.12;}
+  // hydraulic line routed along the wing
+  const pts=side>0?[[1,-.23,.65],[3,-.23,.9],[6,-.23,1.7],[10.4,-.2,2.55]]:[[1,-.23,-.65],[3,-.23,-.9],[6,-.23,-1.7],[10.4,-.2,-2.55]];
+  lineTube(outside,pts,.035,red,'hydraulics');
+ }
+}
+function createEngines() {
+ for(const s of [-1,1]) { const z=s*3.05, x=3.0;
+  // pylon is ahead of wing mid-chord and carries the nacelle below it
+  box(outside,[.78,1.03,.42],[x,.05,z],white,'pylon',[0,0,-.18]);
+  const nac=cylinder(outside,.72,.72,2.55,[x,-.94,z-.05],white,'engine'); nac.scale.set(1,1,.9);
+  // visible front intake, fan hub and blades
+  cylinder(outside,.57,.57,.08,[x,-.94,z-1.22],dark,'fan');
+  cylinder(outside,.14,.14,.12,[x,-.94,z-1.29],panel,'fan');
+  for(let b=0;b<9;b++){const a=b*Math.PI*2/9; const blade=box(outside,[.48,.045,.04],[x+Math.cos(a)*.34,-.94+Math.sin(a)*.34,z-1.30],panel,'fan'); blade.rotation.z=a;}
+  cylinder(outside,.31,.31,.1,[x,-.94,z+1.14],dark,'fan');
+  const cone=mesh(outside,new THREE.ConeGeometry(.26,.72,24),panel,[x,-.94,z+1.25],'fan'); cone.rotation.x=Math.PI/2;
+  // nacelle lip detail
+  const lip=new THREE.Mesh(new THREE.TorusGeometry(.62,.055,10,32),panel); lip.position.set(x,-.94,z-1.26); lip.rotation.x=Math.PI/2; outside.add(lip); register(lip,'engine');
+ }
+ // electrical generator markers on inboard engine/wing area
+ cylinder(outside,.13,.13,.35,[1.45,-.42,2.55],gold,'electrical','x'); cylinder(outside,.13,.13,.35,[1.45,-.42,-2.55],gold,'electrical','x');
+}
+function createTail() {
+ // Tailplanes span across the aft fuselage, swept toward the rear.
+ for(const s of [-1,1]) { const h=box(outside,[4.1,.18,1.15],[1.85,.18,6.15],white,'tailplane',[0,0,-.12]); if(s<0){h.position.x=-1.85;h.rotation.z=.12;} }
+ const fin=box(outside,[.2,3.45,3.15],[0,1.65,5.6],white,'fin',[.12,0,-.13]);
+ // red fin-tip panel accent, no marks or lettering
+ box(outside,[.22,.34,1.0],[0,3.25,6.35],red,'fin',[.12,0,-.13]);
+ const apu=cylinder(outside,.25,.32,.95,[0,.15,7.15],dark,'apu');
+ const cone=mesh(outside,new THREE.ConeGeometry(.36,1.1,28),white,[0,0,7.55],'tailcone'); cone.rotation.x=-Math.PI/2;
+}
+function createGear() {
+ // Forward strut and twin nose wheels
+ cylinder(outside,.075,.095,.9,[0,-1.47,-5.8],panel,'nosegear','y');
+ for(const s of [-1,1]) cylinder(outside,.31,.31,.17,[s*.23,-1.93,-5.8],dark,'nosegear','x');
+ // Two main gear assemblies with twin wheels, brakes, and doors
+ for(const s of [-1,1]) { const x=s*1.25,z=.55;
+  cylinder(outside,.09,.13,1.18,[x,-1.48,z],panel,'maingear','y');
+  cylinder(outside,.34,.34,.2,[x-.22,-2.08,z],dark,'maingear','x'); cylinder(outside,.34,.34,.2,[x+.22,-2.08,z],dark,'maingear','x');
+  cylinder(outside,.14,.14,.22,[x-.23,-2.08,z],gold,'brakes','x'); cylinder(outside,.14,.14,.22,[x+.23,-2.08,z],gold,'brakes','x');
+  box(outside,[.7,.1,.85],[x,-1.05,z+.45],panel,'maingear');
+ }
+}
+function createSystems() {
+ // ECS duct beneath the floor and additional fine hydraulic runs to gear/surfaces.
+ lineTube(outside,[[0,-.88,-4.5],[0,-.92,-2],[0,-.92,2],[0,-.9,5.4]],.055,blue,'ecs');
+ for(const s of [-1,1]) lineTube(outside,[[0,-.94,0],[s*.65,-1.2,.55],[s*1.15,-1.8,.55]],.035,red,'hydraulics');
+}
+function createInterior() {
+ box(inside,[1.75,.12,11.4],[0,-.32,-.05],cabinMat,'cabin');
+ // central aisle strip
+ box(inside,[.44,.025,10.5],[0,-.24,.15],panel,'cabin');
+ // seats, paired across the aisle, in simple rows
+ for(let row=0;row<8;row++) for(const s of [-1,1]) { const z=-4.35+row*1.13; const x=s*.53;
+   box(inside,[.42,.65,.48],[x,.05,z],red,'cabin'); box(inside,[.44,.12,.13],[x,.39,z-.13],panel,'cabin');
+ }
+ // flight deck with instrument panel and two pilot seats
+ box(inside,[1.42,.5,.65],[0,.13,-5.72],dark,'cockpit');
+ for(const s of [-1,1]) { box(inside,[.42,.58,.42],[s*.38,-.02,-6.48],red,'cockpit'); box(inside,[.36,.14,.28],[s*.38,.3,-6.55],panel,'cockpit'); }
+ // rear galley and service modules
+ box(inside,[1.45,.72,.75],[0,.02,5.3],panel,'cabin');
+ for(const s of [-1,1]) box(inside,[.18,.58,.62],[s*.68,.02,4.72],white,'cabin');
+ // cargo compartment and fuel/electrical system indicators outlined in cutaway
+ box(inside,[1.35,.42,4.2],[0,-.82,.4],new THREE.MeshStandardMaterial({color:0x788b98,transparent:true,opacity:.72}), 'cargo');
+ box(inside,[.24,.2,1.15],[0,.1,-6.02],gold,'avionics');
+ box(inside,[.36,.2,1.0],[0,.1,6.65],dark,'apu');
+ // translucent interior shell, intentionally subtle to reveal cabin contents
+ const shell=mesh(inside,new THREE.CylinderGeometry(1.0,1.0,10.9,48,1,true),new THREE.MeshStandardMaterial({color:0xa9c8d6,transparent:true,opacity:.12,side:THREE.DoubleSide,depthWrite:false}),[0,0,0],'fuselage'); shell.rotation.x=Math.PI/2;
+}
+createFuselage(); createWings(); createEngines(); createTail(); createGear(); createSystems(); createInterior();
 
-noseGeometry.computeVertexNormals();
+let selected=null;
+function clearSelection() { if(selected){selected.material.emissive?.setHex(0x000000); selected.material.emissiveIntensity=0; selected=null;} info.innerHTML='<strong>Aircraft anatomy</strong><p>Click a part to learn about it. Drag to rotate; scroll to zoom.</p>'; }
+function choose(hit) {
+ const id=hit?.object?.userData?.partId;
+ if(!id || (selected===hit.object)){ clearSelection(); return; }
+ clearSelection(); selected=hit.object;
+ if(selected.material && selected.material.emissive){selected.material.emissive.setHex(0x5b9eb5); selected.material.emissiveIntensity=.85;}
+ const part=PARTS[id]; if(part) info.innerHTML=`<strong>${part.title}</strong><p>${part.description}</p>`;
+}
+const raycaster=new THREE.Raycaster(); const pointer=new THREE.Vector2();
+function cast(event){const r=renderer.domElement.getBoundingClientRect(); pointer.x=((event.clientX-r.left)/r.width)*2-1; pointer.y=-((event.clientY-r.top)/r.height)*2+1; raycaster.setFromCamera(pointer,camera); return raycaster.intersectObjects(clickables,true).find(h=>h.object.userData.partId);}
+renderer.domElement.addEventListener('click',e=>{ if(controls.dragging) return; choose(cast(e)); });
+renderer.domElement.addEventListener('pointermove',e=>{renderer.domElement.style.cursor=cast(e)?'pointer':'grab';});
+function resize(){const w=sceneHost.clientWidth,h=sceneHost.clientHeight; if(!w||!h)return; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false);}
+window.addEventListener('resize',resize); resize();
+function animate(){requestAnimationFrame(animate); controls.update(); renderer.render(scene,camera);} animate();
 
-const nose = new THREE.Mesh(noseGeometry, white);
-nose.position.set(0,0, -6.5);
-add(outside, nose, 'Nose', '');
-const tail=new THREE.Mesh(new THREE.ConeGeometry(1.45,3.5,32),white);tail.rotation.x=Math.PI/2;tail.position.z=7.8;add(outside,tail,'Tail cone','The rear fuselage tapers to reduce aerodynamic drag.');
-for(const side of [-1,1]){const wing=box(outside,7,.16,2.7,side*4.1,-.25,.7,white,'Main wing','The wings generate lift as air flows around their airfoil surfaces.');wing.rotation.y=side*.16;
-const engine=tube(outside,.65,.65,2.3,side*3.5,-1.05,-.4,white,'Turbofan engine','A turbofan provides thrust by accelerating air through its fan and core.');tube(outside,.52,.52,.08,side*3.5,-1.05,-1.59,dark);
-const stabilizer=box(outside,2.6,.12,1.2,side*1.8,.2,6.3,white,'Horizontal stabilizer','Helps maintain pitch stability and supports pitch control.');
-for(let z=-5.8;z<5.8;z+=.48){const win=new THREE.Mesh(new THREE.SphereGeometry(.085,8,8),glass);win.position.set(side*1.42,.3,z);add(outside,win,'Cabin window','Passenger windows use multiple panes designed for pressurized flight.');}}
-const fin=box(outside,.17,2.6,2.2,0,1.65,6.1,red,'Vertical stabilizer','The vertical tail provides directional stability; its rudder controls yaw.');
-box(outside,1.6,.32,.75,0,.55,-6.8,dark,'Cockpit windows','The flight deck is where pilots monitor and control the aircraft.');
-// Interior cutaway: floor, overhead ceiling ribs, rows of seats, cockpit and cargo area.
-box(inside,2.7,.12,12.8,0,-.6,0,white,'Cabin floor','The cabin floor supports seating, aisles, passengers and equipment.');
-box(inside,2.7,.09,12.8,0,1.05,0,white,'Cabin ceiling','Panels above the cabin conceal lighting, ventilation and other systems.');
-for(let z=-4.7;z<=4.8;z+=.72){for(const x of [-.95,-.55,.55,.95]){box(inside,.32,.48,.4,x,-.25,z,seatMat,'Passenger seat','Passenger seating is arranged around a central aisle in this illustrative cabin.');}}
-box(inside,2.3,.8,1.3,0,-.05,-5.75,dark,'Flight deck','Pilots operate the aircraft from the forward flight deck.');
-box(inside,2.2,.65,1.4,0,-.23,5.7,gold,'Rear service area','A simplified representation of space used for onboard service and equipment.');
-const shell=tube(inside,1.45,1.45,13,0,0,0,new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.12,side:THREE.DoubleSide}),'Cabin shell','The fuselage encloses a pressurized passenger cabin.');shell.material.depthWrite=false;
-inside.visible=false;
-function mode(interior){outside.visible=!interior;inside.visible=interior;info.textContent=interior?'Interior cutaway: hover over seats, flight deck, floor or ceiling.':'Exterior: hover over the fuselage, wings, engines and tail.';}
-document.querySelector('#outside').onclick=()=>mode(false);document.querySelector('#inside').onclick=()=>mode(true);document.querySelector('#reset').onclick=()=>{camera.position.set(15,10,19);controls.target.set(0,0,0);controls.update()};
-const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();renderer.domElement.addEventListener('pointermove',e=>{const rect=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(targets.filter(m=>m.parent?.visible),false)[0];info.textContent=hit?hit.object.userData.title+': '+hit.object.userData.description:(inside.visible?'Interior cutaway: hover over a part to learn more.':'Exterior: hover over a part to learn more.');renderer.domElement.style.cursor=hit?'help':'grab'});
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera)});
+document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
+document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
+document.querySelector('#reset').addEventListener('click',()=>{inside.visible=false;outside.visible=true;camera.position.copy(defaultCamera);controls.target.set(0,0,0);controls.update();clearSelection();});
