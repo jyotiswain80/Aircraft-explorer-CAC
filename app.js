@@ -99,8 +99,8 @@ function createWings() {
     geometry.rotateX(Math.PI/2);
     mesh(outside, geometry, white, [0,.02,0], 'wing');
 
-    box(outside, [6.5,.12,.5], [5.5*side,-.16,.9], panel, 'flaps', [0,0,-.1*side]);
-    box(outside, [5.6,.11,.5], [5.2*side,.13,.2], blue, 'fuel', [0,0,-.1*side]);
+    box(outside, [6.5,.12,.5], [5.5*side,-.16,.9], panel, 'flaps', [0,0,0]);
+    box(outside, [5.6,.11,.5], [5.2*side,.13,.2], blue, 'fuel', [0,0,0]);
     const winglet = box(outside, [.4,1.05,.7], [11.5*side,.55,1.45], white, 'winglet', [0,0,-.12*side]);
     winglet.rotation.z = -.12*side;
     lineTube(outside, [[1.5*side,-.23,-1.0],[4*side,-.23,-.1],[7*side,-.23,.7],[10.4*side,-.2,1.2]], .035, red, 'hydraulics');
@@ -120,8 +120,8 @@ function createEngines() {
   // nacelle lip detail
   const lip=new THREE.Mesh(new THREE.TorusGeometry(.62,.055,10,32),panel); lip.position.set(x,-.94,z-1.26); lip.rotation.x=Math.PI/2; outside.add(lip); register(lip,'engine');
  }
- // electrical generator markers on inboard engine/wing area
- cylinder(outside,.13,.13,.35,[1.45,-.42,2.55],gold,'electrical','x'); cylinder(outside,.13,.13,.35,[1.45,-.42,-2.55],gold,'electrical','x');
+ // electrical generator markers mirrored across the aircraft centerline
+ for(const side of [-1,1]) cylinder(outside,.13,.13,.35,[1.45*side,-.42,side*2.55],gold,'electrical','x');
 }
 function createTail() {
  // Tailplanes span across the aft fuselage, swept toward the rear.
