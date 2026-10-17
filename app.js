@@ -86,7 +86,7 @@ function createWings() {
  const shape=new THREE.Shape(); shape.moveTo(.8,-1.0); shape.lineTo(11.6,2.4); shape.lineTo(11.85,3.0); shape.lineTo(4.2,-2.0); shape.lineTo(.8,-1.0);
  const geo=new THREE.ExtrudeGeometry(shape,{depth:.22,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.08,bevelThickness:.06}); geo.rotateX(Math.PI/2);
  // After rotation, shape's local y maps to Z and extrusion to negative Y.
- for(const side of [-1,1]) { const g=geo.clone(); if(side<0)g.scale(1,1,-1); const wing=mesh(outside,g,white,[0,.02,0],'wing');
+ for(const side of [-1,1]) { const g=geo.clone(); if(side<0)g.scale(side,1,-1); const wing=mesh(outside,g,white,[0,.02,0],'wing');
   // aileron/flap strip, fuel tank volume and winglet
   const flap=box(outside,[7.1,.12,.48],[4.9,-.16,1.08],panel,'flaps',[0,0,-.1]); if(side<0)flap.position.z=-1.08;
   const tank=box(outside,[6.2,.11,.48],[4.6,.13,.12],blue,'fuel',[0,0,-.1]); if(side<0)tank.position.z=-.12;
@@ -97,7 +97,7 @@ function createWings() {
  }
 }
 function createEngines() {
- for(const s of [-1,1]) { const z=s*3.05, x=3.0;
+ for(const s of [-1,1]) { const z=s*3.05, x=s*3.0;
   // pylon is ahead of wing mid-chord and carries the nacelle below it
   box(outside,[.78,1.03,.42],[x,.05,z],white,'pylon',[0,0,-.18]);
   const nac=cylinder(outside,.72,.72,2.55,[x,-.94,z-.05],white,'engine'); nac.scale.set(1,1,.9);
