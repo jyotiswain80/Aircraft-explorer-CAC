@@ -139,16 +139,16 @@ cylinder(noseGear, .075, .095, .9, [0, -.45, 0], panel, 'nosegear', 'y');
 for (const s of [-1, 1]) cylinder(noseGear, .31, .31, .17, [s * .23, -.91, 0], dark, 'nosegear', 'x');
 
 for (const s of [-1, 1]) {
-const x = s * .85, z = .55;
+const x = s * .72, z = .55;
 const g = new THREE.Group();
 g.position.set(x, -.9, z);
 outside.add(g);
 mainGear.push(g);
 cylinder(g, .09, .13, 1.18, [0, -.58, 0], panel, 'maingear', 'y');
-cylinder(g, .34, .34, .2, [-.22, -1.18, 0], dark, 'maingear', 'x');
-cylinder(g, .34, .34, .2, [.22, -1.18, 0], dark, 'maingear', 'x');
-cylinder(g, .14, .14, .22, [-.23, -1.18, 0], gold, 'brakes', 'x');
-cylinder(g, .14, .14, .22, [.23, -1.18, 0], gold, 'brakes', 'x');
+cylinder(g, .30, .30, .16, [-.20, -1.18, 0], dark, 'maingear', 'x');
+cylinder(g, .30, .30, .16, [.20, -1.18, 0], dark, 'maingear', 'x');
+cylinder(g, .13, .13, .21, [-.21, -1.18, 0], gold, 'brakes', 'x');
+cylinder(g, .13, .13, .21, [.21, -1.18, 0], gold, 'brakes', 'x');
 box(outside, [.7, .1, .85], [x, -1.05, z + .45], panel, 'maingear');
 }
 }
