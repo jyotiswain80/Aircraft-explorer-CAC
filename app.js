@@ -223,9 +223,8 @@ setGear(Math.min(1, Math.max(0, (clamp - .5) / .3)));
 function takeoff() { rolling = true; startTime = performance.now(); setPhase(0); }
 document.querySelector('#takeoff').addEventListener('click', takeoff);
 
-then inside animate(), right after controls.update();, add:
-if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); if (t >= 1) rolling = false; }
-function animate(){requestAnimationFrame(animate); controls.update(); renderer.render(scene,camera);} animate();
+
+function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); if (t >= 1) rolling = false; } renderer.render(scene, camera);} animate();
 
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
 document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
