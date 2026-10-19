@@ -225,8 +225,7 @@ function takeoff() { rolling = true; startTime = performance.now(); setPhase(0);
 document.querySelector('#takeoff').addEventListener('click', takeoff);
 function resetAnim(){ rolling = false; setPhase(0); }
 document.querySelector('#resetAnim').addEventListener('click', resetAnim);
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
+
 let hovered = null;
 function setFade(mesh, on) {
 if (!mesh) return;
