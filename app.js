@@ -129,8 +129,9 @@ function createTail() {
  const apu=cylinder(outside,.25,.32,.95,[0,.15,7.15],dark,'apu');
  const cone=mesh(outside,new THREE.ConeGeometry(.36,1.1,28),white,[0,0,7.55],'tailcone'); cone.rotation.x=-Math.PI/2;
 }
+let noseGear, mainGear = [];
 function createGear() {
- let noseGear, mainGear = [];
+ 
 
 noseGear = new THREE.Group();
 noseGear.position.set(0, -1.02, -5.8);
