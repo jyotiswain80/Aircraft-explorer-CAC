@@ -226,7 +226,7 @@ document.querySelector('#takeoff').addEventListener('click', takeoff);
 function resetAnim(){ rolling = false; setPhase(0); }
 document.querySelector('#resetAnim').addEventListener('click', resetAnim);
 
-function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); if (t >= 1) rolling = false; } renderer.render(scene, camera);} animate();
+function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); const camShift = outside.position.clone().sub(controls.target); controls.target.add(camShift); camera.position.add(camShift); if (t >= 1) rolling = false; } renderer.render(scene, camera);} animate();
 
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
 document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
