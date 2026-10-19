@@ -130,16 +130,32 @@ function createTail() {
  const cone=mesh(outside,new THREE.ConeGeometry(.36,1.1,28),white,[0,0,7.55],'tailcone'); cone.rotation.x=-Math.PI/2;
 }
 function createGear() {
- // Forward strut and twin nose wheels
- cylinder(outside,.075,.095,.9,[0,-1.47,-5.8],panel,'nosegear','y');
- for(const s of [-1,1]) cylinder(outside,.31,.31,.17,[s*.23,-1.93,-5.8],dark,'nosegear','x');
- // Two main gear assemblies with twin wheels, brakes, and doors
- for(const s of [-1,1]) { const x=s*1.25,z=.55;
-  cylinder(outside,.09,.13,1.18,[x,-1.48,z],panel,'maingear','y');
-  cylinder(outside,.34,.34,.2,[x-.22,-2.08,z],dark,'maingear','x'); cylinder(outside,.34,.34,.2,[x+.22,-2.08,z],dark,'maingear','x');
-  cylinder(outside,.14,.14,.22,[x-.23,-2.08,z],gold,'brakes','x'); cylinder(outside,.14,.14,.22,[x+.23,-2.08,z],gold,'brakes','x');
-  box(outside,[.7,.1,.85],[x,-1.05,z+.45],panel,'maingear');
- }
+ let noseGear, mainGear = [];
+function createGear() {
+noseGear = new THREE.Group();
+noseGear.position.set(0, -1.02, -5.8);
+outside.add(noseGear);
+cylinder(noseGear, .075, .095, .9, [0, -.45, 0], panel, 'nosegear', 'y');
+for (const s of [-1, 1]) cylinder(noseGear, .31, .31, .17, [s * .23, -.91, 0], dark, 'nosegear', 'x');
+
+for (const s of [-1, 1]) {
+const x = s * .85, z = .55;
+const g = new THREE.Group();
+g.position.set(x, -.9, z);
+outside.add(g);
+mainGear.push(g);
+cylinder(g, .09, .13, 1.18, [0, -.58, 0], panel, 'maingear', 'y');
+cylinder(g, .34, .34, .2, [-.22, -1.18, 0], dark, 'maingear', 'x');
+cylinder(g, .34, .34, .2, [.22, -1.18, 0], dark, 'maingear', 'x');
+cylinder(g, .14, .14, .22, [-.23, -1.18, 0], gold, 'brakes', 'x');
+cylinder(g, .14, .14, .22, [.23, -1.18, 0], gold, 'brakes', 'x');
+box(outside, [.7, .1, .85], [x, -1.05, z + .45], panel, 'maingear');
+}
+}
+
+function setGear(t) {
+if (noseGear) noseGear.rotation.x = -Math.PI / 2 * t;
+for (const g of mainGear) g.rotation.z = -Math.sign(g.position.x) * (Math.PI / 2) * t;
 }
 function createSystems() {
  // ECS duct beneath the floor and additional fine hydraulic runs to gear/surfaces.
