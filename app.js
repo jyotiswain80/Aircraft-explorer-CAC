@@ -131,7 +131,7 @@ function createTail() {
 }
 function createGear() {
  let noseGear, mainGear = [];
-function createGear() {
+
 noseGear = new THREE.Group();
 noseGear.position.set(0, -1.02, -5.8);
 outside.add(noseGear);
