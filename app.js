@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const sceneHost = document.querySelector('#scene');
 const info = document.querySelector('#info');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xdcecf6);
+scene.background = new THREE.Color(0xe4f2fc);
 const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 250);
 const defaultCamera = new THREE.Vector3(19, 12, 20);
 camera.position.copy(defaultCamera);
@@ -200,6 +200,31 @@ renderer.domElement.addEventListener('click',e=>{ if(controls.dragging) return; 
 renderer.domElement.addEventListener('pointermove',e=>{renderer.domElement.style.cursor=cast(e)?'pointer':'grab';});
 function resize(){const w=sceneHost.clientWidth,h=sceneHost.clientHeight; if(!w||!h)return; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false);}
 window.addEventListener('resize',resize); resize();
+// runway, grass, and the takeoff animation
+const grass = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.MeshStandardMaterial({color:0x5f9e4a, roughness:.95}));
+grass.rotation.x = -Math.PI / 2; grass.position.y = -2.42; scene.add(grass);
+const runway = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 44), new THREE.MeshStandardMaterial({color:0x8a8f94, roughness:.9}));
+runway.rotation.x = -Math.PI / 2; runway.position.set(0, -2.41, 0); scene.add(runway);
+const stripe = new THREE.MeshStandardMaterial({color:0xf2f2ef, roughness:.8});
+for (let z = -19; z <= 19.1; z += 3.2) {
+const d = new THREE.Mesh(new THREE.PlaneGeometry(.5, 1.7), stripe);
+d.rotation.x = -Math.PI / 2; d.position.set(0, -2.40, z); scene.add(d);
+}
+
+let rolling = false, startTime = 0;
+function setPhase(p) {
+const clamp = Math.min(1, Math.max(0, p));
+const climb = Math.max(0, (clamp - .45) / .55);
+outside.position.y = climb * 11;
+outside.position.z = -clamp * 30;
+outside.rotation.x = climb * .22;
+setGear(Math.min(1, Math.max(0, (clamp - .5) / .3)));
+}
+function takeoff() { rolling = true; startTime = performance.now(); setPhase(0); }
+document.querySelector('#takeoff').addEventListener('click', takeoff);
+
+then inside animate(), right after controls.update();, add:
+if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); if (t >= 1) rolling = false; }
 function animate(){requestAnimationFrame(animate); controls.update(); renderer.render(scene,camera);} animate();
 
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
