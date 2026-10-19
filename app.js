@@ -225,8 +225,25 @@ function takeoff() { rolling = true; startTime = performance.now(); setPhase(0);
 document.querySelector('#takeoff').addEventListener('click', takeoff);
 function resetAnim(){ rolling = false; setPhase(0); }
 document.querySelector('#resetAnim').addEventListener('click', resetAnim);
-
-function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); const camShift = outside.position.clone().sub(controls.target); controls.target.add(camShift); camera.position.add(camShift); if (t >= 1) rolling = false; } renderer.render(scene, camera);} animate();
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let hovered = null;
+function setFade(mesh, on) {
+if (!mesh) return;
+if (on) { if (!mesh.userData.m0) mesh.userData.m0 = mesh.material;
+const m = mesh.userData.m0.clone(); m.transparent = true; m.opacity = .15; m.depthWrite = false; mesh.material = m; }
+else if (mesh.userData.m0) mesh.material = mesh.userData.m0;
+}
+renderer.domElement.addEventListener('mousemove',(e)=>{
+if (!inside.visible) { setFade(hovered,false); hovered=null; return; }
+const r = renderer.domElement.getBoundingClientRect();
+pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+pointer.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+raycaster.setFromCamera(pointer, camera);
+const hits = raycaster.intersectObjects(outside.children, true);
+const hit = hits.length ? hits[0].object : null;
+if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit; }
+});function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); const camShift = outside.position.clone().sub(controls.target); controls.target.add(camShift); camera.position.add(camShift); if (t >= 1) rolling = false; } renderer.render(scene, camera);} animate();
 
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
 document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
