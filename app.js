@@ -247,7 +247,7 @@ if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit;
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
 document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
 document.querySelector('#reset').addEventListener('click',()=>{inside.visible=false;outside.visible=true;camera.position.copy(defaultCamera);controls.target.set(0,0,0);controls.update();clearSelection();});
-app.js, paste at the very bottom, then add updateHUD(); as the last line inside animate():
+
 
 
 
