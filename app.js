@@ -109,9 +109,9 @@ function createEngines() {
  for(const s of [-1,1]) { const x=s*3.0, z=-1.4;
   // pylon is ahead of wing mid-chord and carries the nacelle below it
   box(outside,[.78,1.03,.42],[x,.05,z],white,'pylon',[0,0,-.18*s]);
-  const nac=cylinder(outside,.72,.72,2.55,[x,-.94,z-.05],white,'engine'); nac.scale.set(1,1,.9);
+  const nac=mesh(outside,new THREE.CylinderGeometry(.72,.72,2.55,32,1,true),white,[x,-.94,z-.05],'engine'); nac.rotation.x=Math.PI/2; nac.scale.set(1,1,.9);
   // visible front intake, fan hub and blades
-  cylinder(outside,.57,.57,.08,[x,-.94,z-1.22],dark,'fan');
+  cylinder(outside,.68,.68,.10,[x,-.94,z-1.30],dark,'fan');
   cylinder(outside,.14,.14,.12,[x,-.94,z-1.29],panel,'fan');
   for(let b=0;b<9;b++){const a=b*Math.PI*2/9; const blade=box(outside,[.48,.045,.04],[x+Math.cos(a)*.34,-.94+Math.sin(a)*.34,z-1.30],panel,'fan'); blade.rotation.z=a;}
   cylinder(outside,.31,.31,.1,[x,-.94,z+1.14],dark,'fan');
@@ -202,30 +202,36 @@ renderer.domElement.addEventListener('pointermove',e=>{renderer.domElement.style
 function resize(){const w=sceneHost.clientWidth,h=sceneHost.clientHeight; if(!w||!h)return; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false);}
 window.addEventListener('resize',resize); resize();
 // runway, grass, and the takeoff animation
-const grass = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.MeshStandardMaterial({color:0x5f9e4a, roughness:.95}));
+const grass = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshStandardMaterial({color:0x5f9e4a, roughness:.95}));
 grass.rotation.x = -Math.PI / 2; grass.position.y = -2.42; scene.add(grass);
-const runway = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 44), new THREE.MeshStandardMaterial({color:0x8a8f94, roughness:.9}));
+const runway = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 240), new THREE.MeshStandardMaterial({color:0x8a8f94, roughness:.9}));
 runway.rotation.x = -Math.PI / 2; runway.position.set(0, -2.41, 0); scene.add(runway);
 const stripe = new THREE.MeshStandardMaterial({color:0xf2f2ef, roughness:.8});
-for (let z = -19; z <= 19.1; z += 3.2) {
+for (let z = -116; z <= 116.1; z += 6) {
 const d = new THREE.Mesh(new THREE.PlaneGeometry(.5, 1.7), stripe);
 d.rotation.x = -Math.PI / 2; d.position.set(0, -2.40, z); scene.add(d);
 }
 
-let rolling = false, startTime = 0;
+const PHASE_CLIMB = 0.30, PHASE_DESCENT = 0.70, CRUISE_Y = 14, RUN_Z = 90;
 function setPhase(p) {
-const clamp = Math.min(1, Math.max(0, p));
-const climb = Math.max(0, (clamp - .45) / .55);
-outside.position.y = climb * 6;
-outside.position.z = -clamp * 12;
-outside.rotation.x = climb * .22;
-setGear(Math.min(1, Math.max(0, (clamp - .5) / .3)));
+  const c = Math.min(1, Math.max(0, p));
+  let alt;
+  if (c < 0.10) alt = 0;
+  else if (c < PHASE_CLIMB) alt = (c - 0.10) / (PHASE_CLIMB - 0.10);
+  else if (c < PHASE_DESCENT) alt = 1;
+  else alt = 1 - (c - PHASE_DESCENT) / (1 - PHASE_DESCENT);
+  outside.position.y = alt * CRUISE_Y;
+  outside.position.z = -c * RUN_Z;
+  if (c < PHASE_CLIMB) outside.rotation.x = (c / PHASE_CLIMB) * .22;
+  else if (c < PHASE_DESCENT) outside.rotation.x = 0;
+  else outside.rotation.x = ((c - PHASE_DESCENT) / (1 - PHASE_DESCENT)) * .12;
+  let g;
+  if (c < 0.10) g = 0;
+  else if (c < 0.24) g = (c - 0.10) / 0.14;
+  else if (c < 0.80) g = 1;
+  else g = 1 - (c - 0.80) / 0.20;
+  setGear(Math.min(1, Math.max(0, g)));
 }
-function takeoff() { rolling = true; inCruise = true; landBtn.disabled = false; startTime = performance.now(); setPhase(0); }
-document.querySelector('#takeoff').addEventListener('click', takeoff);
-function resetAnim(){ rolling = false; setPhase(0); }
-document.querySelector('#resetAnim').addEventListener('click', resetAnim);
-
 let hovered = null;
 function setFade(mesh, on) {
 if (!mesh) return;
@@ -244,31 +250,36 @@ const hit = hits.length ? hits[0].object : null;
 if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit; }
 
 });
+let rolling = false, startTime = 0, phaseFrom = 0, phaseTo = 0, phaseMs = 7000, mode = 'ground';
+const followPoint = new THREE.Vector3(), camDelta = new THREE.Vector3();
+
+function currentPhase() { return Math.min(1, Math.max(0, -outside.position.z / RUN_Z)); }
+function flyTo(to, ms, m) { phaseFrom = currentPhase(); phaseTo = to; phaseMs = ms; mode = m; rolling = true; startTime = performance.now(); }
+function parkPlane() { rolling = false; mode = 'ground'; setPhase(0); cruiseBtn.disabled = false; landBtn.disabled = true; hudSpeed = 0; hudAlt = 0; }
+
 function animate() {
-requestAnimationFrame(animate);
-controls.update();
-if (rolling) {
-const t = Math.min(1, (performance.now() - startTime) / 7000);
-const phase = isLanding ? 1 - t : t;
-setPhase(phase);
-
-if (inCruise && t >= 1) outside.rotation.x = 0;
-if (t >= 1) {
-rolling = false;
-if (isLanding) {
-isLanding = false;
-setPhase(0);
-cruiseBtn.disabled = false;
-}
-}
-}
-updateHUD();
-renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+  if (rolling) {
+    const t = Math.min(1, (performance.now() - startTime) / phaseMs);
+    setPhase(phaseFrom + (phaseTo - phaseFrom) * t);
+    if (t >= 1) {
+      rolling = false;
+      if (phaseTo === 1) { mode = 'ground'; landBtn.disabled = true; } else { mode = 'airborne'; landBtn.disabled = false; }
+      cruiseBtn.disabled = false;
+    }
+  }
+  followPoint.copy(outside.position);
+  camDelta.copy(followPoint).sub(controls.target).multiplyScalar(0.04);
+  controls.target.add(camDelta);
+  camera.position.add(camDelta);
+  controls.update();
+  updateHUD();
+  renderer.render(scene, camera);
 }
 
-document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
-document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
-document.querySelector('#reset').addEventListener('click',()=>{inside.visible=false;outside.visible=true;camera.position.copy(defaultCamera);controls.target.set(0,0,0);controls.update();clearSelection();});
+document.querySelector('#outside').addEventListener('click',()=>{ inside.visible=false; outside.visible=true; parkPlane(); clearSelection(); });
+document.querySelector('#inside').addEventListener('click',()=>{ inside.visible=true; outside.visible=true; parkPlane(); clearSelection(); });
+document.querySelector('#reset').addEventListener('click',()=>{ inside.visible=false; outside.visible=true; camera.position.copy(defaultCamera); controls.target.set(0,0,0); controls.update(); clearSelection(); });
 
 const cruiseBtn = document.getElementById('cruise');
 const landBtn = document.getElementById('land');
@@ -277,73 +288,31 @@ const speedSlider = document.getElementById('speedSlider');
 const takeoffBtn = document.getElementById('takeoff');
 const resetBtn = document.getElementById('resetAnim');
 const H = {
-speed: document.getElementById('hSpeed'), alt: document.getElementById('hAlt'),
-thrust: document.getElementById('hThrust'), lift: document.getElementById('hLift'),
-weight: document.getElementById('hWeight'), drag: document.getElementById('hDrag'),
-grav: document.getElementById('hGrav')
+  speed: document.getElementById('hSpeed'), alt: document.getElementById('hAlt'),
+  thrust: document.getElementById('hThrust'), lift: document.getElementById('hLift'),
+  weight: document.getElementById('hWeight'), drag: document.getElementById('hDrag'),
+  grav: document.getElementById('hGrav')
 };
 
-let sizeFactor = 1, speedFactor = 1, inCruise = false, isLanding = false;
+let sizeFactor = 1, speedFactor = 1;
 let hudSpeed = 0, hudAlt = 0;
 
-sizeSlider.addEventListener('input', () => {
-sizeFactor = parseFloat(sizeSlider.value);
-outside.scale.setScalar(sizeFactor);
-});
+sizeSlider.addEventListener('input', () => { sizeFactor = parseFloat(sizeSlider.value); outside.scale.setScalar(sizeFactor); });
+speedSlider.addEventListener('input', () => { speedFactor = parseFloat(speedSlider.value); });
 
-speedSlider.addEventListener('input', () => {
-speedFactor = parseFloat(speedSlider.value);
-});
+takeoffBtn.addEventListener('click', () => { if (rolling) return; cruiseBtn.disabled = true; landBtn.disabled = true; flyTo(PHASE_CLIMB, 8000, 'takeoff'); });
+cruiseBtn.addEventListener('click', () => { if (rolling || mode === 'landing' || currentPhase() >= PHASE_DESCENT - 0.01) return; cruiseBtn.disabled = true; landBtn.disabled = false; flyTo(PHASE_DESCENT, 12000, 'cruise'); });
+landBtn.addEventListener('click', () => { if (rolling || currentPhase() <= 0.01) return; cruiseBtn.disabled = true; landBtn.disabled = true; flyTo(1, 10000, 'landing'); });
+resetBtn.addEventListener('click', () => { parkPlane(); camera.position.copy(defaultCamera); controls.target.set(0,0,0); controls.update(); clearSelection(); });
 
-cruiseBtn.addEventListener('click', () => {
-if (inCruise || isLanding) return;
-inCruise = true;
-cruiseBtn.disabled = true;
-landBtn.disabled = false;
-setPhase(0);
-rolling = true;
-startTime = performance.now();
-});
-
-landBtn.addEventListener('click', () => {
-if (!inCruise) return;
-inCruise = false;
-isLanding = true;
-landBtn.disabled = true;
-setPhase(1);
-outside.rotation.x = 0;
-rolling = true;
-startTime = performance.now();
-});
-
-takeoffBtn.addEventListener('click', () => {
-cruiseBtn.disabled = true;
-landBtn.disabled = true;
-setTimeout(() => { if (!isLanding) cruiseBtn.disabled = false; }, 7000);
-});
-
-resetBtn.addEventListener('click', () => {
-inCruise = false;
-isLanding = false;
-rolling = false;
-hudSpeed = 0;
-hudAlt = 0;
-
-sizeFactor = 1;
-speedFactor = 1;
-sizeSlider.value = 1;
-speedSlider.value = 1;
-outside.scale.setScalar(1);
-setPhase(0);
-});
 function updateHUD() {
-  const wantSpeed = inCruise ? 250 : (isLanding ? 70 : 0);
-  const wantAlt = inCruise ? 35000 : 0;
+  const wantSpeed = mode === 'landing' ? 130 : (outside.position.y > 0.4 ? 250 : (rolling ? 160 : 0));
+  const wantAlt = outside.position.y * 2500;
   hudSpeed += (wantSpeed * speedFactor - hudSpeed) * 0.05;
   hudAlt += (wantAlt - hudAlt) * 0.03;
   const V = Math.max(0, hudSpeed), A = Math.max(0, hudAlt), s = sizeFactor;
   const weight = 780 * s * s;
-  const thrust = inCruise ? 220 * s : (isLanding ? 70 * s : 0);
+  const thrust = mode === 'airborne' || mode === 'cruise' ? 220 * s : (mode === 'landing' ? 70 * s : 0);
   const area = s * s;
   const lift = 780 * area * Math.pow(V / 200, 2);
   const drag = 0.6 * area * Math.pow(V / 100, 2) * 10;
