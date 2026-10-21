@@ -242,7 +242,7 @@ raycaster.setFromCamera(pointer, camera);
 const hits = raycaster.intersectObjects(outside.children, true);
 const hit = hits.length ? hits[0].object : null;
 if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit; }
-});function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); const camShift = outside.position.clone().sub(controls.target); controls.target.add(camShift); camera.position.add(camShift); if (t >= 1) rolling = false; } renderer.render(scene, camera);} animate();
+});function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); const camShift = outside.position.clone().sub(controls.target); controls.target.add(camShift); camera.position.add(camShift); if (t >= 1) rolling = false; } updateHUD(); renderer.render(scene, camera);} animate();
 
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
 document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
@@ -255,6 +255,8 @@ const cruiseBtn   = document.getElementById('cruise');
 const landBtn     = document.getElementById('land');
 const sizeSlider  = document.getElementById('sizeSlider');
 const speedSlider = document.getElementById('speedSlider');
+const takeoffBtn = document.getElementById('takeoff');
+const resetBtn = document.getElementById('resetAnim');
 const H = {
 speed: document.getElementById('hSpeed'), alt: document.getElementById('hAlt'),
 thrust: document.getElementById('hThrust'), lift: document.getElementById('hLift'),
@@ -268,70 +270,70 @@ let hudSpeed = 0, hudAlt = 0;
 
 
 sizeSlider.addEventListener('input', () => {
-sizeFactor = parseFloat(sizeSlider.value);
-outside.scale.setScalar(sizeFactor);
+  sizeFactor = parseFloat(sizeSlider.value);
+  outside.scale.setScalar(sizeFactor);
 });
 
 speedSlider.addEventListener('input', () => {
-speedFactor = parseFloat(speedSlider.value);
+  speedFactor = parseFloat(speedSlider.value);
 });
 
 cruiseBtn.addEventListener('click', () => {
-if (inCruise || isLanding) return;
-inCruise = true;
-cruiseBtn.disabled = true;
-landBtn.disabled = false;
-setPhase(0.45);
+  if (inCruise || isLanding) return;
+  inCruise = true;
+  cruiseBtn.disabled = true;
+  landBtn.disabled = false;
+  setPhase(0.45);
 });
 
 landBtn.addEventListener('click', () => {
-if (!inCruise) return;
-inCruise = false;
-isLanding = true;
-landBtn.disabled = true;
-setPhase(0.8);
-setTimeout(() => { setPhase(1); }, 3000);
-setTimeout(() => { isLanding = false; cruiseBtn.disabled = false; }, 6000);
+  if (!inCruise) return;
+  inCruise = false;
+  isLanding = true;
+  landBtn.disabled = true;
+  setPhase(0.8);
+  setTimeout(() => setPhase(1), 3000);
+  setTimeout(() => { isLanding = false; cruiseBtn.disabled = false; }, 6000);
 });
 
-const takeoffBtn = document.getElementById('takeoff');
-if (takeoffBtn) takeoffBtn.addEventListener('click', () => {
-cruiseBtn.disabled = true;
-landBtn.disabled = true;
-setTimeout(() => { if (!isLanding) cruiseBtn.disabled = false; }, 7000);
+takeoffBtn.addEventListener('click', () => {
+  cruiseBtn.disabled = true;
+  landBtn.disabled = true;
+  setTimeout(() => { if (!isLanding) cruiseBtn.disabled = false; }, 7000);
 });
 
-const resetBtn = document.getElementById('resetAnim');
-if (resetBtn) resetBtn.addEventListener('click', () => {
-inCruise = false;
-isLanding = false;
-hudSpeed = 0;
-hudAlt = 0;
-cruiseBtn.disabled = true;
-landBtn.disabled = true;
-sizeFactor = 1;
-speedFactor = 1;
-sizeSlider.value = 1;
-speedSlider.value = 1;
-outside.scale.setScalar(1);
+resetBtn.addEventListener('click', () => {
+  inCruise = false;
+  isLanding = false;
+  hudSpeed = 0;
+  hudAlt = 0;
+  cruiseBtn.disabled = true;
+  landBtn.disabled = true;
+  sizeFactor = 1;
+  speedFactor = 1;
+  sizeSlider.value = 1;
+  speedSlider.value = 1;
+  outside.scale.setScalar(1);
 });
 
 function updateHUD() {
-const wantSpeed = inCruise ? 250 : (isLanding ? 70 : 0);
-const wantAlt = inCruise ? 35000 : 0;
-hudSpeed += (wantSpeed * speedFactor - hudSpeed) * 0.05;
-hudAlt += (wantAlt - hudAlt) * 0.03;
-const V = Math.max(0, hudSpeed), A = Math.max(0, hudAlt), s = sizeFactor;
-const weight = 780 * s * s;
-const thrust = inCruise ? 220 * s : (isLanding ? 70 * s : 0);
-const area = s * s;
-const lift = 780 * area * Math.pow(V / 200, 2);
-const drag = 0.6 * area * Math.pow(V / 100, 2) * 10;
-if (H.speed) H.speed.textContent = 'Speed: ' + V.toFixed(0) + ' kt';
-if (H.alt) H.alt.textContent = 'Altitude: ' + A.toFixed(0) + ' ft';
-if (H.thrust) H.thrust.textContent = 'Thrust: ' + thrust.toFixed(0) + '%';
-if (H.lift) H.lift.textContent = 'Lift: ' + lift.toFixed(0);
-if (H.weight) H.weight.textContent = 'Weight: ' + weight.toFixed(0);
-if (H.drag) H.drag.textContent = 'Drag: ' + drag.toFixed(0);
-if (H.grav) H.grav.textContent = 'Gravity: ' + weight.toFixed(0);
+  const wantSpeed = inCruise ? 250 : (isLanding ? 70 : 0);
+  const wantAlt = inCruise ? 35000 : 0;
+  hudSpeed += (wantSpeed * speedFactor - hudSpeed) * 0.05;
+  hudAlt += (wantAlt - hudAlt) * 0.03;
+  const V = Math.max(0, hudSpeed), A = Math.max(0, hudAlt), s = sizeFactor;
+  const weight = 780 * s * s;
+  const thrust = inCruise ? 220 * s : (isLanding ? 70 * s : 0);
+  const area = s * s;
+  const lift = 780 * area * Math.pow(V / 200, 2);
+  const drag = 0.6 * area * Math.pow(V / 100, 2) * 10;
+  if (H.speed) H.speed.textContent = 'Speed: ' + V.toFixed(0) + ' kt';
+  if (H.alt) H.alt.textContent = 'Altitude: ' + A.toFixed(0) + ' ft';
+  if (H.thrust) H.thrust.textContent = 'Thrust: ' + thrust.toFixed(0) + '%';
+  if (H.lift) H.lift.textContent = 'Lift: ' + lift.toFixed(0);
+  if (H.weight) H.weight.textContent = 'Weight: ' + weight.toFixed(0);
+  if (H.drag) H.drag.textContent = 'Drag: ' + drag.toFixed(0);
+  if (H.grav) H.grav.textContent = 'Gravity: ' + weight.toFixed(0);
 }
+
+updateHUD();
