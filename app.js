@@ -251,6 +251,9 @@ if (rolling) {
 const t = Math.min(1, (performance.now() - startTime) / 7000);
 const phase = isLanding ? 1 - t : t;
 setPhase(phase);
+const camShift = outside.position.clone().sub(controls.target);
+controls.target.add(camShift);
+camera.position.add(camShift);
 if (inCruise && t >= 1) outside.rotation.x = 0;
 if (t >= 1) {
 rolling = false;
