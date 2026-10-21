@@ -212,26 +212,7 @@ const d = new THREE.Mesh(new THREE.PlaneGeometry(.5, 1.7), stripe);
 d.rotation.x = -Math.PI / 2; d.position.set(0, -2.40, z); scene.add(d);
 }
 
-const PHASE_CLIMB = 0.30, PHASE_DESCENT = 0.70, CRUISE_Y = 14, RUN_Z = 90;
-function setPhase(p) {
-  const c = Math.min(1, Math.max(0, p));
-  let alt;
-  if (c < 0.10) alt = 0;
-  else if (c < PHASE_CLIMB) alt = (c - 0.10) / (PHASE_CLIMB - 0.10);
-  else if (c < PHASE_DESCENT) alt = 1;
-  else alt = 1 - (c - PHASE_DESCENT) / (1 - PHASE_DESCENT);
-  outside.position.y = alt * CRUISE_Y;
-  outside.position.z = -c * RUN_Z;
-  if (c < PHASE_CLIMB) outside.rotation.x = (c / PHASE_CLIMB) * .22;
-  else if (c < PHASE_DESCENT) outside.rotation.x = 0;
-  else outside.rotation.x = ((c - PHASE_DESCENT) / (1 - PHASE_DESCENT)) * .12;
-  let g;
-  if (c < 0.10) g = 0;
-  else if (c < 0.24) g = (c - 0.10) / 0.14;
-  else if (c < 0.80) g = 1;
-  else g = 1 - (c - 0.80) / 0.20;
-  setGear(Math.min(1, Math.max(0, g)));
-}
+
 let hovered = null;
 function setFade(mesh, on) {
 if (!mesh) return;
@@ -248,8 +229,28 @@ raycaster.setFromCamera(pointer, camera);
 const hits = raycaster.intersectObjects(outside.children, true);
 const hit = hits.length ? hits[0].object : null;
 if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit; }
-
-});
+const PHASE_CLIMB = 0.30, PHASE_DESCENT = 0.70, PHASE_TOUCHDOWN = 0.88, CRUISE_Y = 14, RUN_Z = 112;
+function setPhase(p) {
+const c = Math.min(1, Math.max(0, p));
+let alt;
+if (c < 0.10) alt = 0;
+else if (c < PHASE_CLIMB) alt = (c - 0.10) / (PHASE_CLIMB - 0.10);
+else if (c < PHASE_DESCENT) alt = 1;
+else if (c < PHASE_TOUCHDOWN) alt = 1 - (c - PHASE_DESCENT) / (PHASE_TOUCHDOWN - PHASE_DESCENT);
+else alt = 0;
+outside.position.y = alt * CRUISE_Y;
+outside.position.z = -c * RUN_Z;
+if (c < PHASE_CLIMB) outside.rotation.x = (c / PHASE_CLIMB) * .22;
+else if (c < PHASE_DESCENT) outside.rotation.x = 0;
+else if (c < PHASE_TOUCHDOWN) outside.rotation.x = ((c - PHASE_DESCENT) / (PHASE_TOUCHDOWN - PHASE_DESCENT)) * .10;
+else outside.rotation.x = (1 - (c - PHASE_TOUCHDOWN) / (1 - PHASE_TOUCHDOWN)) * .10;
+let g;
+if (c < 0.10) g = 0;
+else if (c < 0.24) g = (c - 0.10) / 0.14;
+else if (c < 0.72) g = 1;
+else g = 1 - (c - 0.72) / 0.12;
+setGear(Math.min(1, Math.max(0, g)));
+}});
 let rolling = false, startTime = 0, phaseFrom = 0, phaseTo = 0, phaseMs = 7000, mode = 'ground';
 const followPoint = new THREE.Vector3(), camDelta = new THREE.Vector3();
 
