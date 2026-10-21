@@ -229,6 +229,7 @@ raycaster.setFromCamera(pointer, camera);
 const hits = raycaster.intersectObjects(outside.children, true);
 const hit = hits.length ? hits[0].object : null;
 if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit; }
+});
 const PHASE_CLIMB = 0.30, PHASE_DESCENT = 0.70, PHASE_TOUCHDOWN = 0.88, CRUISE_Y = 14, RUN_Z = 112;
 function setPhase(p) {
 const c = Math.min(1, Math.max(0, p));
@@ -250,7 +251,7 @@ else if (c < 0.24) g = (c - 0.10) / 0.14;
 else if (c < 0.72) g = 1;
 else g = 1 - (c - 0.72) / 0.12;
 setGear(Math.min(1, Math.max(0, g)));
-}});
+}
 let rolling = false, startTime = 0, phaseFrom = 0, phaseTo = 0, phaseMs = 7000, mode = 'ground';
 const followPoint = new THREE.Vector3(), camDelta = new THREE.Vector3();
 
