@@ -242,7 +242,7 @@ raycaster.setFromCamera(pointer, camera);
 const hits = raycaster.intersectObjects(outside.children, true);
 const hit = hits.length ? hits[0].object : null;
 if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit; }
-});function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); const camShift = outside.position.clone().sub(controls.target); controls.target.add(camShift); camera.position.add(camShift); if (t >= 1) rolling = false; } updateHUD(); renderer.render(scene, camera);} animate();
+});function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); const camShift = outside.position.clone().sub(controls.target); controls.target.add(camShift); camera.position.add(camShift); if (t >= 1) rolling = false; } updateHUD(); renderer.render(scene, camera);} 
 
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
 document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
@@ -337,3 +337,4 @@ function updateHUD() {
 }
 
 updateHUD();
+animate();
