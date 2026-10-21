@@ -221,7 +221,7 @@ outside.position.z = -clamp * 12;
 outside.rotation.x = climb * .22;
 setGear(Math.min(1, Math.max(0, (clamp - .5) / .3)));
 }
-function takeoff() { rolling = true; startTime = performance.now(); setPhase(0); }
+function takeoff() { rolling = true; inCruise = true; landBtn.disabled = false; startTime = performance.now(); setPhase(0); }
 document.querySelector('#takeoff').addEventListener('click', takeoff);
 function resetAnim(){ rolling = false; setPhase(0); }
 document.querySelector('#resetAnim').addEventListener('click', resetAnim);
