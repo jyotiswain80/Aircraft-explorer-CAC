@@ -242,18 +242,36 @@ raycaster.setFromCamera(pointer, camera);
 const hits = raycaster.intersectObjects(outside.children, true);
 const hit = hits.length ? hits[0].object : null;
 if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit; }
-});function animate(){requestAnimationFrame(animate); controls.update(); if (rolling) { const t = (performance.now() - startTime) / 7000; setPhase(t); const camShift = outside.position.clone().sub(controls.target); controls.target.add(camShift); camera.position.add(camShift); if (t >= 1) rolling = false; } updateHUD(); renderer.render(scene, camera);} 
+
+});
+function animate() {
+requestAnimationFrame(animate);
+controls.update();
+if (rolling) {
+const t = Math.min(1, (performance.now() - startTime) / 7000);
+const phase = isLanding ? 1 - t : t;
+setPhase(phase);
+if (inCruise && t >= 1) outside.rotation.x = 0;
+if (t >= 1) {
+rolling = false;
+if (isLanding) {
+isLanding = false;
+setPhase(0);
+cruiseBtn.disabled = false;
+}
+}
+}
+updateHUD();
+renderer.render(scene, camera);
+}
 
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
 document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
 document.querySelector('#reset').addEventListener('click',()=>{inside.visible=false;outside.visible=true;camera.position.copy(defaultCamera);controls.target.set(0,0,0);controls.update();clearSelection();});
 
-
-
-
-const cruiseBtn   = document.getElementById('cruise');
-const landBtn     = document.getElementById('land');
-const sizeSlider  = document.getElementById('sizeSlider');
+const cruiseBtn = document.getElementById('cruise');
+const landBtn = document.getElementById('land');
+const sizeSlider = document.getElementById('sizeSlider');
 const speedSlider = document.getElementById('speedSlider');
 const takeoffBtn = document.getElementById('takeoff');
 const resetBtn = document.getElementById('resetAnim');
@@ -267,55 +285,57 @@ grav: document.getElementById('hGrav')
 let sizeFactor = 1, speedFactor = 1, inCruise = false, isLanding = false;
 let hudSpeed = 0, hudAlt = 0;
 
-
-
 sizeSlider.addEventListener('input', () => {
-  sizeFactor = parseFloat(sizeSlider.value);
-  outside.scale.setScalar(sizeFactor);
+sizeFactor = parseFloat(sizeSlider.value);
+outside.scale.setScalar(sizeFactor);
 });
 
 speedSlider.addEventListener('input', () => {
-  speedFactor = parseFloat(speedSlider.value);
+speedFactor = parseFloat(speedSlider.value);
 });
 
 cruiseBtn.addEventListener('click', () => {
-  if (inCruise || isLanding) return;
-  inCruise = true;
-  cruiseBtn.disabled = true;
-  landBtn.disabled = false;
-  setPhase(0.45);
+if (inCruise || isLanding) return;
+inCruise = true;
+cruiseBtn.disabled = true;
+landBtn.disabled = false;
+setPhase(0);
+rolling = true;
+startTime = performance.now();
 });
 
 landBtn.addEventListener('click', () => {
-  if (!inCruise) return;
-  inCruise = false;
-  isLanding = true;
-  landBtn.disabled = true;
-  setPhase(0.8);
-  setTimeout(() => setPhase(1), 3000);
-  setTimeout(() => { isLanding = false; cruiseBtn.disabled = false; }, 6000);
+if (!inCruise) return;
+inCruise = false;
+isLanding = true;
+landBtn.disabled = true;
+setPhase(1);
+outside.rotation.x = 0;
+rolling = true;
+startTime = performance.now();
 });
 
 takeoffBtn.addEventListener('click', () => {
-  cruiseBtn.disabled = true;
-  landBtn.disabled = true;
-  setTimeout(() => { if (!isLanding) cruiseBtn.disabled = false; }, 7000);
+cruiseBtn.disabled = true;
+landBtn.disabled = true;
+setTimeout(() => { if (!isLanding) cruiseBtn.disabled = false; }, 7000);
 });
 
 resetBtn.addEventListener('click', () => {
-  inCruise = false;
-  isLanding = false;
-  hudSpeed = 0;
-  hudAlt = 0;
-  cruiseBtn.disabled = true;
-  landBtn.disabled = true;
-  sizeFactor = 1;
-  speedFactor = 1;
-  sizeSlider.value = 1;
-  speedSlider.value = 1;
-  outside.scale.setScalar(1);
+inCruise = false;
+isLanding = false;
+rolling = false;
+hudSpeed = 0;
+hudAlt = 0;
+cruiseBtn.disabled = true;
+landBtn.disabled = true;
+sizeFactor = 1;
+speedFactor = 1;
+sizeSlider.value = 1;
+speedSlider.value = 1;
+outside.scale.setScalar(1);
+setPhase(0);
 });
-
 function updateHUD() {
   const wantSpeed = inCruise ? 250 : (isLanding ? 70 : 0);
   const wantAlt = inCruise ? 35000 : 0;
