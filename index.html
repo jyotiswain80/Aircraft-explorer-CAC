@@ -1,36 +1,50 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f3f7fa">
-  <title>Aircraft Explorer</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="importmap">
-    {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
-  </script>
-  <script type="module" src="app.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f37f7a">
+<title>Aircraft Explorer</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module" src="app.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="heading">
-      <h1>Aircraft Explorer</h1>
-      <p>Interactive educational 3D aircraft anatomy</p>
-    </div>
-    <nav class="controls" aria-label="Aircraft view controls">
-      <button id="outside" type="button" aria-label="Show aircraft exterior">Exterior</button>
-      <button id="inside" type="button" aria-label="Show interior cutaway">Interior cutaway</button>
-      <button id="reset" type="button" class="secondary">Reset view</button>
-      <button id="takeoff" style="background:#dc2626;color:white;">Takeoff</button>
-      <button id="resetAnim" style="background:#16a34a;color:white;">Reset</button>
-    </nav>
-  </header>
-  <main id="scene" aria-label="Interactive three-dimensional aircraft model">
-    <aside id="info" aria-live="polite">
-      <strong>Aircraft anatomy</strong>
-      <p>Click a part to learn about it. Drag to rotate; scroll to zoom.</p>
-    </aside>
-  </main>
-  <footer>Original simplified educational model; not affiliated with any airline.</footer>
+<header class="topbar">
+<div class="heading">
+<h1>Aircraft Explorer</h1>
+<p>Interactive educational 3D aircraft anatomy</p>
+</div>
+<nav class="controls" aria-label="Aircraft view controls">
+<button id="outside" type="button" aria-label="Show aircraft exterior">Exterior</button>
+<button id="inside" type="button" aria-label="Show interior cutaway">Interior cutaway</button>
+<button id="reset" type="button" class="secondary">Reset view</button>
+<button id="takeoff" type="button" class="secondary">Takeoff</button>
+<button id="cruise" type="button" class="secondary">Cruise</button>
+<button id="land" type="button" class="secondary">Land</button>
+<button id="resetAnim" type="button" class="secondary">Reset</button>
+<label class="slider">Size <input id="sizeSlider" type="range" min="0.5" max="1.5" step="0.01" value="1"></label>
+<label class="slider">Speed <input id="speedSlider" type="range" min="0" max="2" step="0.05" value="0.6"></label>
+</nav>
+</header>
+<main id="scene" aria-label="Interactive three-dimensional aircraft model">
+<aside id="info" aria-live="polite">
+<strong>Aircraft anatomy</strong>
+<p>Click a part to learn about it. Drag to rotate; scroll to zoom.</p>
+</aside>
+</main>
+<div id="hud">
+<span id="hudMode">Mode: Exterior</span>
+<span id="hudState">State: Ground</span>
+<span id="hudSpeed">Speed: 0 kt</span>
+<span id="hudAlt">Altitude: 0 ft</span>
+<span id="hudThrottle">Throttle: 0%</span>
+<span id="hudFlaps">Flaps: Up</span>
+<span id="hudGear">Gear: Down</span>
+</div>
+<footer>Original simplified educational model; not affiliated with any airline.</footer>
 </body>
 </html>
