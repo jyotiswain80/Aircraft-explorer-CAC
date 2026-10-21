@@ -247,3 +247,133 @@ if (hit !== hovered) { setFade(hovered,false); setFade(hit,true); hovered = hit;
 document.querySelector('#outside').addEventListener('click',()=>{inside.visible=false;outside.visible=true;clearSelection();});
 document.querySelector('#inside').addEventListener('click',()=>{inside.visible=true;outside.visible=true;clearSelection();});
 document.querySelector('#reset').addEventListener('click',()=>{inside.visible=false;outside.visible=true;camera.position.copy(defaultCamera);controls.target.set(0,0,0);controls.update();clearSelection();});
+app.js, paste at the very bottom, then add updateHUD(); as the last line inside animate():
+
+
+
+const cruiseBtn   = document.getElementById('cruise');
+const landBtn     = document.getElementById('land');
+const sizeSlider  = document.getElementById('sizeSlider');
+const speedSlider = document.getElementById('speedSlider');
+const H = {
+speed: document.getElementById('hSpeed'), alt: document.getElementById('hAlt'),
+thrust: document.getElementById('hThrust'), lift: document.getElementById('hLift'),
+weight: document.getElementById('hWeight'), drag: document.getElementById('hDrag'),
+grav: document.getElementById('hGrav')
+};
+
+let sizeFactor = 1, speedFactor = 1, inCruise = false, isLanding = false;
+let hudSpeed = 0, hudAlt = 0;
+
+sizeSlider.addEventListener('input', () => {
+sizeFactor = parseFloat(sizeSlider.value);
+simPlane.scale.setScalar(sizeFactor);
+});
+speedSlider.addEventListener('input', () => { speedFactor = parseFloat(speedSlider.value); });
+
+cruiseBtn.addEventListener('click', () => {
+if (inCruise || isLanding) return;
+inCruise = true; cruiseBtn.disabled = true; landBtn.disabled = false;
+if (typeof setPhase === 'function') setPhase(0.45);
+});
+
+landBtn.addEventListener('click', () => {
+if (!inCruise) return;
+inCruise = false; isLanding = true; landBtn.disabled = true;
+if (typeof setPhase === 'function') setPhase(0.8);
+setTimeout(() => { if (typeof setPhase === 'function') setPhase(1); }, 3000);
+setTimeout(() => { isLanding = false; cruiseBtn.disabled = false; }, 6000);
+});
+
+const takeoffBtn = document.getElementById('takeoff');
+if (takeoffBtn) takeoffBtn.addEventListener('click', () => {
+cruiseBtn.disabled = true; landBtn.disabled = true;
+setTimeout(() => { if (!isLanding) cruiseBtn.disabled = false; }, 7000);
+});
+
+const resetBtn = document.getElementById('resetAnim');
+if (resetBtn) resetBtn.addEventListener('click', () => {
+inCruise = false; isLanding = false; hudSpeed = 0; hudAlt = 0;
+cruiseBtn.disabled = true; landBtn.disabled = true;
+sizeFactor = 1; speedFactor = 1;
+sizeSlider.value = 1; speedSlider.value = 1;
+simPlane.scale.setScalar(1);
+});
+
+function updateHUD() {
+const wantSpeed = inCruise ? 250 : (isLanding ? 70 : 0);
+const wantAlt   = inCruise ? 35000 : 0;
+hudSpeed += (wantSpeed * speedFactor - hudSpeed) * 0.05;
+hudAlt   += (wantAlt - hudAlt) * 0.03;
+
+const V = Math.max(0, hudSpeed), A = Math.max(0, hudAlt), s = sizeFactor;
+const weight = 780 * s * s;
+const thrust = inCruise ? 220 * s : (isLanding ? 70 * s : 0);
+const area   = s * s;
+const lift   = 780 * area * Math.pow(V / 200, 2);
+const drag   = 0.6 * area * Math.pow(V / 100, 2) * 10;
+const grav   = weight;
+
+H.speed.textContent  = V.toFixed(0);
+H.alt.textContent    = A.toFixed(0);
+H.thrust.textContent = thrust.toFixed(0);
+H.weight.textContent = weight.toFixed(0);
+H.drag.textContent   = drag.toFixed(0);
+H.lift.textContent   = lift.toFixed(0);
+H.grav.textContent   = grav.toFixed(0);
+}
+
+
+speedSlider.addEventListener('input', () => { speedFactor = parseFloat(speedSlider.value); });
+
+cruiseBtn.addEventListener('click', () => {
+if (inCruise || isLanding) return;
+inCruise = true; cruiseBtn.disabled = true; landBtn.disabled = false;
+if (typeof setPhase === 'function') setPhase(0.45);
+});
+
+landBtn.addEventListener('click', () => {
+if (!inCruise) return;
+inCruise = false; isLanding = true; landBtn.disabled = true;
+if (typeof setPhase === 'function') setPhase(0.8);
+setTimeout(() => { if (typeof setPhase === 'function') setPhase(1); }, 3000);
+setTimeout(() => { isLanding = false; cruiseBtn.disabled = false; }, 6000);
+});
+
+const takeoffBtn = document.getElementById('takeoff');
+if (takeoffBtn) takeoffBtn.addEventListener('click', () => {
+cruiseBtn.disabled = true; landBtn.disabled = true;
+setTimeout(() => { if (!isLanding) cruiseBtn.disabled = false; }, 7000);
+});
+
+const resetBtn = document.getElementById('resetAnim');
+if (resetBtn) resetBtn.addEventListener('click', () => {
+inCruise = false; isLanding = false; hudSpeed = 0; hudAlt = 0;
+cruiseBtn.disabled = true; landBtn.disabled = true;
+sizeFactor = 1; speedFactor = 1;
+sizeSlider.value = 1; speedSlider.value = 1;
+simPlane.scale.setScalar(1);
+});
+
+function updateHUD() {
+const wantSpeed = inCruise ? 250 : (isLanding ? 70 : 0);
+const wantAlt   = inCruise ? 35000 : 0;
+hudSpeed += (wantSpeed * speedFactor - hudSpeed) * 0.05;
+hudAlt   += (wantAlt - hudAlt) * 0.03;
+
+const V = Math.max(0, hudSpeed), A = Math.max(0, hudAlt), s = sizeFactor;
+const weight = 780 * s * s;
+const thrust = inCruise ? 220 * s : (isLanding ? 70 * s : 0);
+const area   = s * s;
+const lift   = 780 * area * Math.pow(V / 200, 2);
+const drag   = 0.6 * area * Math.pow(V / 100, 2) * 10;
+const grav   = weight;
+
+H.speed.textContent  = V.toFixed(0);
+H.alt.textContent    = A.toFixed(0);
+H.thrust.textContent = thrust.toFixed(0);
+H.weight.textContent = weight.toFixed(0);
+H.drag.textContent   = drag.toFixed(0);
+H.lift.textContent   = lift.toFixed(0);
+H.grav.textContent   = grav.toFixed(0);
+}
