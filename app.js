@@ -216,8 +216,8 @@ let rolling = false, startTime = 0;
 function setPhase(p) {
 const clamp = Math.min(1, Math.max(0, p));
 const climb = Math.max(0, (clamp - .45) / .55);
-outside.position.y = climb * 11;
-outside.position.z = -clamp * 30;
+outside.position.y = climb * 4;
+outside.position.z = -clamp * 8;
 outside.rotation.x = climb * .22;
 setGear(Math.min(1, Math.max(0, (clamp - .5) / .3)));
 }
@@ -251,9 +251,7 @@ if (rolling) {
 const t = Math.min(1, (performance.now() - startTime) / 7000);
 const phase = isLanding ? 1 - t : t;
 setPhase(phase);
-const camShift = outside.position.clone().sub(controls.target);
-controls.target.add(camShift);
-camera.position.add(camShift);
+
 if (inCruise && t >= 1) outside.rotation.x = 0;
 if (t >= 1) {
 rolling = false;
