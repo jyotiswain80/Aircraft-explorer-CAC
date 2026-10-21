@@ -216,8 +216,8 @@ let rolling = false, startTime = 0;
 function setPhase(p) {
 const clamp = Math.min(1, Math.max(0, p));
 const climb = Math.max(0, (clamp - .45) / .55);
-outside.position.y = climb * 4;
-outside.position.z = -clamp * 8;
+outside.position.y = climb * 6;
+outside.position.z = -clamp * 12;
 outside.rotation.x = climb * .22;
 setGear(Math.min(1, Math.max(0, (clamp - .5) / .3)));
 }
@@ -328,8 +328,7 @@ isLanding = false;
 rolling = false;
 hudSpeed = 0;
 hudAlt = 0;
-cruiseBtn.disabled = true;
-landBtn.disabled = true;
+
 sizeFactor = 1;
 speedFactor = 1;
 sizeSlider.value = 1;
