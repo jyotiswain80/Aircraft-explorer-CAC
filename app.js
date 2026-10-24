@@ -239,12 +239,14 @@ else if (c < PHASE_CLIMB) alt = (c - 0.10) / (PHASE_CLIMB - 0.10);
 else if (c < PHASE_DESCENT) alt = 1;
 else if (c < PHASE_TOUCHDOWN) alt = 1 - (c - PHASE_DESCENT) / (PHASE_TOUCHDOWN - PHASE_DESCENT);
 else alt = 0;
-outside.position.y = alt * CRUISE_Y;
+
+outside.position.y = 2.38 * (sizeFactor - 1) + alt * CRUISE_Y;
+
 outside.position.z = -c * RUN_Z;
 if (c < PHASE_CLIMB) outside.rotation.x = (c / PHASE_CLIMB) * .22;
 else if (c < PHASE_DESCENT) outside.rotation.x = 0;
-else if (c < PHASE_TOUCHDOWN) outside.rotation.x = ((c - PHASE_DESCENT) / (PHASE_TOUCHDOWN - PHASE_DESCENT)) * .10;
-else outside.rotation.x = (1 - (c - PHASE_TOUCHDOWN) / (1 - PHASE_TOUCHDOWN)) * .10;
+else if (c < PHASE_TOUCHDOWN) outside.rotation.x = -((c - PHASE_DESCENT) / (PHASE_TOUCHDOWN - PHASE_DESCENT)) * .05;
+else outside.rotation.x = 0;
 let g;
 if (c < 0.10) g = 0;
 else if (c < 0.24) g = (c - 0.10) / 0.14;
