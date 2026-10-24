@@ -69,8 +69,8 @@ function createFuselage() {
  const g=new THREE.LatheGeometry(profile,64); g.rotateX(Math.PI/2); // lathe axis Y becomes aircraft Z
  mesh(outside,g,white,[0,0,0],'fuselage');
  // radome overlay is subtly tinted and overlaps the front profile smoothly
- const rad=mesh(outside,new THREE.SphereGeometry(1,32,24),white,[0,0,0],'nose');
- rad.scale.set(.72,.72,1.48); rad.position.set(0,-.08,-7.05);
+const rad=mesh(outside,new THREE.ConeGeometry(.72,1.1,32),white,[0,0,-7.85],'nose');
+rad.rotation.x=-Math.PI/2;
  // cockpit glazing follows curved front surface via small angled individual panes
  const paneGeo=new THREE.SphereGeometry(1,20,12);
  for(const side of [-1,1]) for(let i=0;i<2;i++) { const p=mesh(outside,paneGeo,glass,[side*(.22+i*.27),.49,-6.65+i*.12],'cockpit'); p.scale.set(.23,.27,.15); p.rotation.x=-.25; p.rotation.z=side*.12; }
@@ -261,7 +261,7 @@ let rolling = false, startTime = 0, phaseFrom = 0, phaseTo = 0, phaseMs = 7000, 
 const followPoint = new THREE.Vector3(), camDelta = new THREE.Vector3();
 
 function currentPhase() { return Math.min(1, Math.max(0, -outside.position.z / RUN_Z)); }
-function flyTo(to, ms, m) { phaseFrom = currentPhase(); phaseTo = to; phaseMs = ms; mode = m; rolling = true; startTime = performance.now(); }
+function flyTo(to, ms, m) { phaseFrom = currentPhase(); phaseTo = to; phaseMs = Math.min(60000, ms / Math.max(0.05, speedFactor / 0.6 / sizeFactor)); mode = m; rolling = true; startTime = performance.now(); }
 function parkPlane() { rolling = false; mode = 'ground'; setPhase(0); cruiseBtn.disabled = false; landBtn.disabled = true; hudSpeed = 0; hudAlt = 0; }
 
 function animate() {
@@ -316,8 +316,8 @@ resetBtn.addEventListener('click', () => { parkPlane(); camera.position.copy(def
 function updateHUD() {
   const wantSpeed = mode === 'landing' ? 130 : (outside.position.y > 0.4 ? 250 : (rolling ? 160 : 0));
   const wantAlt = outside.position.y * 2500;
-  hudSpeed += (wantSpeed * speedFactor - hudSpeed) * 0.05;
-  hudAlt += (wantAlt - hudAlt) * 0.03;
+hudSpeed += (wantSpeed * speedFactor / sizeFactor - hudSpeed) * 0.05;
+ hudAlt += (wantAlt - hudAlt) * 0.03;
   const V = Math.max(0, hudSpeed), A = Math.max(0, hudAlt), s = sizeFactor;
   const weight = 780 * s * s;
   const thrust = mode === 'airborne' || mode === 'cruise' ? 220 * s : (mode === 'landing' ? 70 * s : 0);
