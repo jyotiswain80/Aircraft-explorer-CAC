@@ -314,9 +314,9 @@ landBtn.addEventListener('click', () => { if (rolling || currentPhase() <= 0.01)
 resetBtn.addEventListener('click', () => { parkPlane(); camera.position.copy(defaultCamera); controls.target.set(0,0,0); controls.update(); clearSelection(); });
 
 function updateHUD() {
-  const wantSpeed = mode === 'landing' ? 130 : (outside.position.y > 0.4 ? 250 : (rolling ? 160 : 0));
-  const wantAlt = outside.position.y * 2500;
-hudSpeed += (wantSpeed * speedFactor / sizeFactor - hudSpeed) * 0.05;
+const gy = 2.38 * (sizeFactor - 1);
+const wantSpeed = mode === 'landing' ? 130 : ((outside.position.y - gy) > 0.4 ? 250 : (rolling ? 160 : 0));
+const wantAlt = (outside.position.y - gy) * 2500;hudSpeed += (wantSpeed * speedFactor / sizeFactor - hudSpeed) * 0.05;
  hudAlt += (wantAlt - hudAlt) * 0.03;
   const V = Math.max(0, hudSpeed), A = Math.max(0, hudAlt), s = sizeFactor;
   const weight = 780 * s * s;
