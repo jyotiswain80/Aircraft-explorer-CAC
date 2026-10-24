@@ -161,7 +161,7 @@ for (const g of mainGear) g.rotation.z = -Math.sign(g.position.x) * (Math.PI / 2
 function createSystems() {
  // ECS duct beneath the floor and additional fine hydraulic runs to gear/surfaces.
  lineTube(outside,[[0,-.88,-4.5],[0,-.92,-2],[0,-.92,2],[0,-.9,5.4]],.055,blue,'ecs');
- for(const s of [-1,1]) lineTube(outside,[[0,-.94,0],[s*.65,-1.2,.55],[s*1.15,-1.8,.55]],.035,red,'hydraulics');
+
 }
 function createInterior() {
  box(inside,[1.75,.12,11.4],[0,-.32,-.05],cabinMat,'cabin');
@@ -253,6 +253,9 @@ else if (c < 0.24) g = (c - 0.10) / 0.14;
 else if (c < 0.72) g = 1;
 else g = 1 - (c - 0.72) / 0.12;
 setGear(Math.min(1, Math.max(0, g)));
+inside.position.copy(outside.position);
+inside.rotation.x = outside.rotation.x;
+
 }
 let rolling = false, startTime = 0, phaseFrom = 0, phaseTo = 0, phaseMs = 7000, mode = 'ground';
 const followPoint = new THREE.Vector3(), camDelta = new THREE.Vector3();
@@ -301,7 +304,8 @@ const H = {
 let sizeFactor = 1, speedFactor = 1;
 let hudSpeed = 0, hudAlt = 0;
 
-sizeSlider.addEventListener('input', () => { sizeFactor = parseFloat(sizeSlider.value); outside.scale.setScalar(sizeFactor); });
+sizeSlider.addEventListener('input', () => { sizeFactor = parseFloat(sizeSlider.value); outside.scale.setScalar(sizeFactor); inside.scale.setScalar(sizeFactor); if (!rolling) setPhase(0); });
+
 speedSlider.addEventListener('input', () => { speedFactor = parseFloat(speedSlider.value); });
 
 takeoffBtn.addEventListener('click', () => { if (rolling) return; cruiseBtn.disabled = true; landBtn.disabled = true; flyTo(PHASE_CLIMB, 8000, 'takeoff'); });
