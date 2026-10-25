@@ -24,7 +24,7 @@ footer { padding: 10px 20px 12px; text-align: center; color: #718291; background
  #info { top: 12px; left: 12px; width: min(290px, calc(100% - 24px)); }
 }
 #hud { position:fixed; right:16px; bottom:16px; background:#fff; color:#111; font:12px monospace; padding:10px 12px; border-radius:8px; border:1px solid #ccc; line-height:1.5; }
-historyMenu > summary { list-style: none; border: 1px solid #1e526e; border-radius: 7px; background: #fff; color: #1e526e; font-size: .9rem; font-weight: 650; padding: 10px 15px; cursor: pointer; transition: background .15s ease, transform .15s ease; }
+.historyMenu > summary { list-style: none; border: 1px solid #1e526e; border-radius: 7px; background: #fff; color: #1e526e; font-size: .9rem; font-weight: 650; padding: 10px 15px; cursor: pointer; transition: background .15s ease, transform .15s ease; }
 .historyMenu > summary::-webkit-details-marker { display: none; }
 .historyMenu > summary:hover { background: #edf4f7; transform: translateY(-1px); }
 .historyMenu[open] > summary { background: #edf4f7; }
