@@ -24,7 +24,8 @@ Run locally
 
 Live demo
 
-PASTE YOUR GITHUB PAGES LINK HERE
+Open Aircraft Explorer https://jyotiswain80.github.io/Aircraft-explorer-CAC/
+
 
 AI use disclosure
 
