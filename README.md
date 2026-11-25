@@ -1,11 +1,35 @@
-# Aircraft Explorer — Congressional App Challenge starter
-A working static 3D aircraft learning app using Three.js. Includes a simplified Emirates-inspired widebody concept (not an official Emirates aircraft or licensed 3D model), exterior and interior cutaway, hover descriptions, orbit/zoom controls, and blue sky.
+Aircraft Explorer
 
-## Publish on GitHub Pages
-1. Create a new public GitHub repository.
-2. Upload `index.html`, `style.css`, and `app.js` to its root.
-3. Go to Settings → Pages → Build and deployment → Deploy from a branch → `main` / `(root)` → Save.
-4. Open the published URL after deployment. Internet access is needed for the Three.js CDN.
+A browser-based 3D aircraft explorer built with Three.js. It renders a simplified widebody airliner procedurally, with no third-party models, images, or audio anywhere in the project, and lets you explore both the exterior and an interior cutaway while reading about each part.
 
-## Next steps for your entry
-Replace the procedural model with an appropriately licensed and attributed accurate aircraft GLB/GLTF, verify specific Emirates fleet/cabin facts, add source citations and accessibility (keyboard/touch part selection), and write your own project documentation. This starter is not an official Emirates product.
+Features
+
+- Fully procedural widebody aircraft, all geometry generated in code
+- Exterior view with hover highlighting on each part
+- Interior cutaway view
+- Part info cards with descriptions
+- Flight sim mode with a live HUD
+- Size and speed sliders
+- Historical timeline
+
+Tech
+
+- Three.js, loaded through an import map via CDN
+- Plain HTML, CSS, and JavaScript, no build step
+
+Run locally
+
+1. Clone or download this repository.
+2. Open index.html in a browser, or serve the folder with python3 -m http.server.
+
+Live demo
+
+PASTE YOUR GITHUB PAGES LINK HERE
+
+AI use disclosure
+
+This project was built by Swastik Swain with assistance from AI tools for code generation and debugging. All design decisions and the final implementation are his own.
+
+License
+
+MIT, see LICENSE.
